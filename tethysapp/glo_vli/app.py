@@ -1,5 +1,5 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
-
+from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
 
 class GloVli(TethysAppBase):
     """
@@ -29,6 +29,27 @@ class GloVli(TethysAppBase):
                 url='glo-vli',
                 controller='glo_vli.controllers.home'
             ),
+            UrlMap(
+                name='add-point',
+                url='glo-vli/add-point',
+                controller='glo_vli.controllers.add_point'
+            ),
         )
 
         return url_maps
+
+    def persistent_store_settings(self):
+        """
+        Define Persistent Store Settings.
+        """
+        ps_settings = (
+            PersistentStoreDatabaseSetting(
+                name='layers',
+                description='layers database',
+                initializer='glo_vli.model.init_layer_db',
+                required=True,
+                spatial=True
+            ),
+        )
+
+        return ps_settings
