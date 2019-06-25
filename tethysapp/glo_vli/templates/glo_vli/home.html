@@ -8,6 +8,21 @@
 {% endblock %}
 
 
+{% block app_navigation_items %}
+<br>
+<li><b>Current Layers</b></li>
+<div id="current-layers">
+  <ul id="current-layers-list"></ul>
+</div>
+<br>
+{% if user.is_superuser or user.is_staff %}
+{% url 'glo_vli:home' as home_url %}
+{% url 'glo_vli:add-point' as add_point_url %}
+<li class="title">Configuration</li>
+<li class="{% if request.path == add_point_url %}active{% endif %}"><a href="{{add_point_url}}">Add a Point</a></li>
+{% endif%}
+{% endblock %}
+
 {% block app_content %}
 <style>
   #map {
@@ -35,9 +50,9 @@
     padding-left: 1em;
     padding-right: 1em;
   }
-.popover{
-  max-width:600px;
-}
+  .popover{
+    max-width:600px;
+  }
 
 </style>
 

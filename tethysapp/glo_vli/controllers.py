@@ -17,6 +17,7 @@ def home(request):
 
     return render(request, 'glo_vli/home.html', context)
 
+
 @user_passes_test(user_permission_test)
 def add_point(request):
 

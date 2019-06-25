@@ -5,8 +5,8 @@
 {% block title %}{{ tethys_app.name }}{% endblock %}
 
 {% block app_icon %}
-  {# The path you provided in your app.py is accessible through the tethys_app.icon context variable #}
-  <img src="{% static tethys_app.icon %}">
+{# The path you provided in your app.py is accessible through the tethys_app.icon context variable #}
+<img src="{% static tethys_app.icon %}">
 {% endblock %}
 
 {# The name you provided in your app.py is accessible through the tethys_app.name context variable #}
@@ -39,12 +39,7 @@
 {% endblock %}
 
 {% block app_navigation_items %}
-{% if user.is_superuser or user.is_staff %}
-{% url 'glo_vli:home' as home_url %}
-{% url 'glo_vli:add-point' as add_point_url %}
-<li class="title">Configuration</li>
-<li class="{% if request.path == add_point_url %}active{% endif %}"><a href="{{add_point_url}}">Add a Point</a></li>
-{% endif%}
+
 {% endblock %}
 
 {% block app_content %}
@@ -54,11 +49,15 @@
 {% endblock %}
 
 {% block content_dependent_styles %}
-  {{ block.super }}
-  <link href="{% static 'glo_vli/css/main.css' %}" rel="stylesheet"/>
+{{ block.super }}
+<link href="https://code.jquery.com/ui/1.12.1/themes/base/jquery-ui.css" rel="stylesheet" />
+<link href="{% static 'glo_vli/vendor/contextMenu/contextMenu.css' %}" rel="stylesheet" />
+<link href="{% static 'glo_vli/css/main.css' %}" rel="stylesheet"/>
 {% endblock %}
 
 {% block scripts %}
-  {{ block.super }}
-  <script src="{% static 'glo_vli/js/main.js' %}" type="text/javascript"></script>
+{{ block.super }}
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.min.js" integrity="sha256-VazP97ZCwtekAsvgPBSUwPFKdrwD3unUfSGVYrahUqU=" crossorigin="anonymous"></script>
+<script src="{% static 'glo_vli/vendor/contextMenu/contextMenu.js' %}" async="async"></script>
+<script src="{% static 'glo_vli/js/main.js' %}" type="text/javascript"></script>
 {% endblock %}

@@ -2,6 +2,15 @@
 {% load tethys_gizmos %}
 {% load staticfiles %}
 
+{% block app_navigation_items %}
+{% if user.is_superuser or user.is_staff %}
+{% url 'glo_vli:home' as home_url %}
+{% url 'glo_vli:add-point' as add_point_url %}
+<br>
+<li class=""><b><a href="{{home_url}}">Go Back to Map Page</a></b></li>
+{% endif%}
+{% endblock %}
+
 {% block app_content %}
 <style>
     #map {
