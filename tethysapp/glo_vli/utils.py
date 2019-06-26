@@ -26,20 +26,21 @@ def add_points():
                 # df = pd.DataFrame(gdf.drop(columns='geometry'))
                 Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
                 session = Session()
-                print(gdf.columns.values)
-                print(f)
+
                 for index, row in gdf.iterrows():
 
                     if 'LowWaterCrossings_Int' in f:
                         latitude = row.get('LAT')
                         longitude = row.get('LONG')
                         source = row.get('SOURCE')
+                        table_name = 'LowWaterCrossings'
+
                     if 'HighWaterMarks_Int' in f:
                         latitude = row.get('Lat')
                         longitude = row.get('Long')
                         source = row.get('Source')
+                        table_name = 'HighWaterMarks'
 
-                    table_name = f.split('.')[0]
                     point = Layer(table_name, latitude, longitude, 2019, source, 10, approved=True)
                     session.add(point)
                 session.commit()

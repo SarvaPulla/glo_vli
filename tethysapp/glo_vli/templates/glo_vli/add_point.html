@@ -14,19 +14,26 @@
 {% block app_content %}
 <style>
     #map {
-        height: 400px;
+        height: 350px;
         width: 100%;
         position: relative;
     }
 </style>
 <h3>Add a point</h3>
+<div id="message" class="alert alert-danger hidden" role="alert"></div>
 <div id="map" class="map"></div>
 <div id="mouse-position"></div>
-   <div class="hidden"><b>Map Interaction</b>
+<div class="hidden"><b>Map Interaction</b>
     <select id="interaction-type" class="btn btn-xs btn-primary" data-width="fit">
         <option value="Point">Point</option>
     </select></div>
 <input type="text" name="point-lat-lon" id="point-lat-lon" hidden>
+{% gizmo lon_lat_input %}
+{% gizmo select_layer_input %}
+{% gizmo source_input %}
+{% gizmo year_input %}
+{% gizmo elevation_input %}
+{% gizmo  add_button %}
 {% endblock %}
 
 {% block scripts %}

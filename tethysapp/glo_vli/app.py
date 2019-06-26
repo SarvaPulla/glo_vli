@@ -34,6 +34,11 @@ class GloVli(TethysAppBase):
                 url='glo-vli/add-point',
                 controller='glo_vli.controllers.add_point'
             ),
+            UrlMap(
+                name='add-point-ajax',
+                url='glo-vli/add-point/submit',
+                controller='glo_vli.controllers_ajax.point_add'
+            ),
         )
 
         return url_maps

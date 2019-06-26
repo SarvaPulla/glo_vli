@@ -48,7 +48,7 @@ var LIBRARY_OBJECT = (function() {
 	 *                    PRIVATE FUNCTION IMPLEMENTATIONS
 	 *************************************************************************/
 	init_jquery_vars = function(){
-		vli_layers = ['HighWaterMarks_Int', 'LowWaterCrossings_Int'];
+		vli_layers = ['HighWaterMarks', 'LowWaterCrossings'];
 		var $layers_element = $('#layers');
 	};
 
@@ -59,7 +59,7 @@ var LIBRARY_OBJECT = (function() {
 		});
 
 		wms_source = new ol.source.ImageWMS({
-			url: 'http://127.0.0.1:8181/geoserver/wms',
+			url: 'http://hydropad.org:8181/geoserver/wms',
 			params: {'LAYERS': 'glo_vli:layers'},
 			serverType: 'geoserver',
 			crossOrigin: 'Anonymous'
@@ -228,7 +228,7 @@ var LIBRARY_OBJECT = (function() {
 
 			// addContextMenuToListItem($list_item);
 			wms_source = new ol.source.ImageWMS({
-				url: 'http://127.0.0.1:8181/geoserver/wms',
+				url: 'http://hydropad.org:8181/geoserver/wms',
 				params: {'LAYERS': 'glo_vli:layers',
 						'CQL_FILTER': cql_str},
 				serverType: 'geoserver',

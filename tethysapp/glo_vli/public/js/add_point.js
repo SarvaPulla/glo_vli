@@ -27,11 +27,14 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                    PRIVATE FUNCTION DECLARATIONS
      *************************************************************************/
-    var clear_coords,
+    var add_point,
+        clear_coords,
         init_events,
         init_jquery_vars,
         init_all,
-        init_map;
+        init_map,
+        reset_alert,
+        reset_form;
 
     /************************************************************************
      *                    PRIVATE FUNCTION IMPLEMENTATIONS
@@ -39,6 +42,28 @@ var LIBRARY_OBJECT = (function() {
 
     clear_coords = function(){
         $("#point-lat-lon").val('');
+    };
+
+    //Reset the alerts if everything is going well
+    reset_alert = function(){
+        $("#message").addClass('hidden');
+        $("#message").empty()
+            .addClass('hidden')
+            .removeClass('alert-success')
+            .removeClass('alert-info')
+            .removeClass('alert-warning')
+            .removeClass('alert-danger');
+    };
+
+    //Reset the form when the request is made succesfully
+    reset_form = function(result){
+        if("success" in result){
+            $("#lon-lat-input").val('');
+            $("#year-input").val('');
+            $("#source-input").val('');
+            $("#elevation-input").val('');
+            addSuccessMessage('Point Upload Complete!');
+        }
     };
 
     init_jquery_vars = function(){
@@ -156,6 +181,7 @@ var LIBRARY_OBJECT = (function() {
                 var coords = parsed_feature["features"][0]["geometry"]["coordinates"];
                 var proj_coords = ol.proj.transform(coords, 'EPSG:3857','EPSG:4326');
                 $("#point-lat-lon").val(proj_coords);
+                $("#lon-lat-input").val(proj_coords);
             }
         });
 
@@ -168,6 +194,8 @@ var LIBRARY_OBJECT = (function() {
                 var coords = parsed_feature["features"][0]["geometry"]["coordinates"];
                 var proj_coords = ol.proj.transform(coords, 'EPSG:3857','EPSG:4326');
                 $("#point-lat-lon").val(proj_coords);
+                $("#lon-lat-input").val(proj_coords);
+
             }
         });
 
@@ -214,6 +242,53 @@ var LIBRARY_OBJECT = (function() {
     init_events = function(){
 
     };
+
+    add_point = function(){
+        reset_alert();
+        var year = $("#year-input").val();
+        var layer = $("#select-layer option:selected").val();
+        var source = $("#source-input").val();
+        var elevation = $("#elevation-input").val();
+        var lon_lat = $("#lon-lat-input").val();
+
+        if(source == ""){
+            addErrorMessage("Source cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+        if(year == ""){
+            addErrorMessage("Year cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+
+        if(elevation == ""){
+            addErrorMessage("Elevation cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+        if(lon_lat == ""){
+            addErrorMessage("Please select a point on the map!");
+            return false;
+        }else{
+            reset_alert();
+        }
+        var data = {"year": year, "source": source, "layer": layer, "elevation": elevation, "point": lon_lat};
+
+        var xhr = ajax_update_database("submit",data);
+        xhr.done(function(return_data){
+            if("success" in return_data){
+                reset_form(return_data);
+            }else if("error" in return_data){
+                addErrorMessage(return_data["error"]);
+            }
+        });
+    };
+
+    $("#submit-add-point").click(add_point);
 
     init_all = function(){
         init_jquery_vars();
