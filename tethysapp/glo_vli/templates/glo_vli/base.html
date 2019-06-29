@@ -39,7 +39,15 @@
 {% endblock %}
 
 {% block app_navigation_items %}
-
+{% if user.is_superuser or user.is_staff %}
+{% url 'glo_vli:home' as home_url %}
+{% url 'glo_vli:add-point' as add_point_url %}
+{% url 'glo_vli:approve-points' as approve_point_url %}
+<li class="title">Configuration</li>
+<li class="{% if request.path == home_url %}active{% endif %}"><a href="{{home_url}}">Home</a></li>
+<li class="{% if request.path == add_point_url %}active{% endif %}"><a href="{{add_point_url}}">Add a Point</a></li>
+<li class="{% if request.path == approve_point_url %}active{% endif %}"><a href="{{approve_point_url}}">Approve Points</a></li>
+{% endif%}
 {% endblock %}
 
 {% block app_content %}

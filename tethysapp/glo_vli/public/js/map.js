@@ -224,7 +224,7 @@ var LIBRARY_OBJECT = (function() {
 
 				$('<li class="ui-state-default"'+'layer-name="'+lyr_name+'"'+'><input class="chkbx-layer" type="checkbox" checked><span class="layer-name">'+lyr_name+'</span><div class="hmbrgr-div"><img src="/static/glo_vli/images/hamburger.svg"></div></li>').appendTo('#current-layers');
 			var $list_item = $('#current-layers').find('li:last-child');
-			var cql_str = 'layer_name='+'\''+lyr_name+'\'';
+			var cql_str = 'layer_name='+'\''+lyr_name+'\' AND approved=True';
 
 			// addContextMenuToListItem($list_item);
 			wms_source = new ol.source.ImageWMS({

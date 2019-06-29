@@ -2,7 +2,8 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from tethys_sdk.gizmos import Button, MVDraw, MapView, TextInput, SelectInput
 from .utils import add_points, user_permission_test
-
+from .app import GloVli
+from .model import *
 
 def home(request):
     """
@@ -65,3 +66,58 @@ def add_point(request):
     }
 
     return render(request, 'glo_vli/add_point.html', context)
+
+
+@user_passes_test(user_permission_test)
+def approve_points(request):
+
+    add_button = Button(display_text='Approve Point',
+                        icon='glyphicon glyphicon-plus',
+                        style='success',
+                        name='submit-add-point',
+                        attributes={'id': 'submit-approve-point'}, )
+    #initialize session
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    num_points = session.query(Layer).filter_by(approved=False).count()
+    session.close()
+
+    context = {
+        'num_points': num_points,
+        'initial_page': 0
+    }
+
+    return render(request, 'glo_vli/approve_points.html', context)
+
+@user_passes_test(user_permission_test)
+def approve_points_table(request):
+
+    #initialize session
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    RESULTS_PER_PAGE = 5
+
+    page = int(request.GET.get('page'))
+
+    # Query DB for data store types
+    points = session.query(Layer)\
+                    .order_by(Layer.id) \
+                    .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
+
+    prev_button = Button(display_text='Previous',
+                         name='prev_button',
+                         attributes={'class': 'nav_button'},)
+
+    next_button = Button(display_text='Next',
+                         name='next_button',
+                         attributes={'class': 'nav_button'},)
+
+    context = {
+                'prev_button': prev_button,
+                'next_button': next_button,
+                'points': points,
+              }
+
+    session.close()
+
+    return render(request, 'glo_vli/approve_points_table.html', context)
