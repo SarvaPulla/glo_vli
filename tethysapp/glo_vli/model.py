@@ -9,12 +9,12 @@ from .app import GloVli as app
 Base = declarative_base()
 
 
-# SQLAlchemy ORM definition for the dams table
-class Layer(Base):
+# SQLAlchemy ORM definition for the Points table
+class Points(Base):
     """
     SQLAlchemy Layer Database table
     """
-    __tablename__ = 'layers'
+    __tablename__ = 'points'
 
     # Columns
     id = Column(Integer, primary_key=True)
@@ -40,6 +40,34 @@ class Layer(Base):
         self.elevation = elevation
         self.approved = approved
         self.geometry = 'SRID=4326;POINT({0} {1})'.format(longitude, latitude)
+
+
+# SQLAlchemy ORM definition for the Polygon table
+class Polygons(Base):
+    """
+    SQLAlchemy Layer Database table
+    """
+    __tablename__ = 'polygons'
+
+    # Columns
+    id = Column(Integer, primary_key=True)
+    layer_name = Column(String)
+    year = Column(String)
+    source = Column(String)
+    approved = Column(Boolean)
+    geometry = Column(Geometry('GEOMETRY', srid=4326))
+
+    def __init__(self, layer_name, year, source, approved, geometry):
+        """
+        Constructor for a gage
+        """
+
+        self.layer_name = layer_name
+        self.year = year
+        self.source = source
+        self.approved = approved
+        self.geometry = 'SRID=4326;{0}'.format(geometry)
+
 
 def init_layer_db(engine, first_time):
     """

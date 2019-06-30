@@ -44,12 +44,45 @@ class GloVli(TethysAppBase):
                 url='glo-vli/approve-points',
                 controller='glo_vli.controllers.approve_points'
             ),
-            UrlMap(name='approve-points-table',
-                   url='glo-vli/approve-points/table',
-                   controller='glo_vli.controllers.approve_points_table'),
-            UrlMap(name='update-points-ajax',
-                   url='glo-vli/approve-points/submit',
-                   controller='glo_vli.controllers_ajax.point_update'),
+            UrlMap(
+                name='approve-points-table',
+                url='glo-vli/approve-points/table',
+                controller='glo_vli.controllers.approve_points_table'),
+            UrlMap(
+                name='update-points-ajax',
+                url='glo-vli/approve-points/submit',
+                controller='glo_vli.controllers_ajax.point_update'),
+            UrlMap(
+                name='delete-points-ajax',
+                url='glo-vli/approve-points/delete',
+                controller='glo_vli.controllers_ajax.point_delete'),
+            UrlMap(
+                name='add-polygon',
+                url='glo-vli/add-polygon',
+                controller='glo_vli.controllers.add_polygon'
+            ),
+            UrlMap(
+                name='add-polygon-ajax',
+                url='glo-vli/add-polygon/submit',
+                controller='glo_vli.controllers_ajax.polygon_add'
+            ),
+            UrlMap(
+                name='approve-polygons',
+                url='glo-vli/approve-polygons',
+                controller='glo_vli.controllers.approve_polygons'
+            ),
+            UrlMap(
+                name='approve-polygons-table',
+                url='glo-vli/approve-polygons/table',
+                controller='glo_vli.controllers.approve_polygons_table'),
+            UrlMap(
+                name='update-polygons-ajax',
+                url='glo-vli/approve-polygons/submit',
+                controller='glo_vli.controllers_ajax.polygon_update'),
+            UrlMap(
+                name='delete-polygons-ajax',
+                url='glo-vli/approve-polygons/delete',
+                controller='glo_vli.controllers_ajax.polygon_delete'),
         )
 
         return url_maps
