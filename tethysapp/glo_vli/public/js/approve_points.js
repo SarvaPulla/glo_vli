@@ -126,6 +126,8 @@ var LIBRARY_OBJECT = (function() {
         });
         map.addControl(mousePositionControl);
 
+        var scaleLineControl = new ol.control.ScaleLine({units:'us'});
+        map.addControl(scaleLineControl);
 
 
     };
@@ -139,8 +141,9 @@ var LIBRARY_OBJECT = (function() {
         $('.view-point').off().click(function(){
             var parent_row = $(this).parent().parent().parent();
             var point_id = parent_row.find('.point-id').text();
-            // map.removeLayer(wms_layer);
-            var sld_string = '<StyledLayerDescriptor version="1.0.0"><NamedLayer><Name>glo_vli:layers</Name><UserStyle><FeatureTypeStyle>\
+            console.log(point_id);
+            map.removeLayer(wms_layer);
+            var sld_string = '<StyledLayerDescriptor version="1.0.0"><NamedLayer><Name>glo_vli:points</Name><UserStyle><FeatureTypeStyle>\
                         <Rule>\
                         <PointSymbolizer>\
                         <Graphic>\
@@ -160,7 +163,7 @@ var LIBRARY_OBJECT = (function() {
                         </StyledLayerDescriptor>';
             wms_source = new ol.source.ImageWMS({
                 url: 'http://hydropad.org:8181/geoserver/wms',
-                params: {'LAYERS': 'glo_vli:layers', 'SLD_BODY':sld_string,
+                params: {'LAYERS': 'glo_vli:points', 'SLD_BODY':sld_string,
                     'FeatureID': point_id},
                 serverType: 'geoserver',
                 crossOrigin: 'Anonymous'

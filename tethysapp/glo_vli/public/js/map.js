@@ -54,9 +54,9 @@ var LIBRARY_OBJECT = (function() {
 
 	init_map = function(){
 
-		var base_map =  new ol.layer.Tile({
-			source: new ol.source.OSM()
-		});
+		// var base_map =  new ol.layer.Tile({
+		// 	source: new ol.source.OSM()
+		// });
 
 		wms_source = new ol.source.ImageWMS({
 			url: 'http://hydropad.org:8181/geoserver/wms',
@@ -69,9 +69,46 @@ var LIBRARY_OBJECT = (function() {
 			source: wms_source
 		});
 
+		var attribution = new ol.Attribution({
+			html: 'Tiles © <a href="https://services.arcgisonline.com/ArcGIS/rest/services/">ArcGIS</a>'
+		});
+
 		layersDict = {};
 
-		layers = [base_map];
+		var base_map = new ol.layer.Tile({
+			name:'Base Map 1',
+			source: new ol.source.BingMaps({
+				key: '5TC0yID7CYaqv3nVQLKe~xWVt4aXWMJq2Ed72cO4xsA~ApdeyQwHyH_btMjQS1NJ7OHKY8BK-W-EMQMrIavoQUMYXeZIQOUURnKGBOC7UCt4',
+				imagerySet: 'AerialWithLabels' // Options 'Aerial', 'AerialWithLabels', 'Road'
+			}),
+			baseLayer:true,
+			title:"Bing",
+			visible:false
+		});
+		var base_map2 = new ol.layer.Tile({
+			name:'Base Map 2',
+			crossOrigin: 'anonymous',
+			source: new ol.source.XYZ({
+				attributions: [attribution],
+				url: 'https://services.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer' +
+					'/tile/{z}/{y}/{x}'
+			}),
+			baseLayer:true,
+			visible:false,
+			title: "World Imagery"
+
+		});
+
+		var base_map3 = new ol.layer.Tile({
+			name:'Base Map 3',
+			crossOrigin: 'anonymous',
+			source: new ol.source.OSM(),
+			baseLayer:true,
+			title: "Open Street Map"
+
+		});
+
+		layers = [base_map, base_map2, base_map3];
 
 		map = new ol.Map({
 			target: 'map',
@@ -92,6 +129,17 @@ var LIBRARY_OBJECT = (function() {
 			stopEvent: true
 		});
 		map.addOverlay(popup);
+
+		var scaleLineControl = new ol.control.ScaleLine({units:'us'});
+		map.addControl(scaleLineControl);
+
+		var switcher = new ol.control.LayerSwitcher(
+			{	target:$(".layerSwitcher").get(0),
+				show_progress:true,
+				extent: true
+			});
+
+		map.addControl(switcher);
 	};
 
 	get_popup = function(evt){
@@ -239,7 +287,10 @@ var LIBRARY_OBJECT = (function() {
 				});
 				// 'CQL_FILTER': 'layer_name=\'HighWaterMarks_Int\''
 				wms_layer = new ol.layer.Image({
-					source: wms_source
+					source: wms_source,
+					name:lyr_name,
+					visible:true,
+					title: lyr_name
 				});
 				map.addLayer(wms_layer);
 
@@ -265,7 +316,10 @@ var LIBRARY_OBJECT = (function() {
 				});
 				// 'CQL_FILTER': 'layer_name=\'HighWaterMarks_Int\''
 				wms_layer = new ol.layer.Image({
-					source: wms_source
+					source: wms_source,
+					name:lyr_name,
+					visible:true,
+					title: lyr_name
 				});
 				map.addLayer(wms_layer);
 

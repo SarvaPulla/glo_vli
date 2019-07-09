@@ -96,7 +96,7 @@ var LIBRARY_OBJECT = (function() {
 
         wms_source = new ol.source.ImageWMS({
             url: 'http://hydropad.org:8181/geoserver/wms',
-            params: {'LAYERS': 'glo_vli:layers'},
+            params: {'LAYERS': 'glo_vli:polygons'},
             serverType: 'geoserver',
             crossOrigin: 'Anonymous'
         });
@@ -126,7 +126,8 @@ var LIBRARY_OBJECT = (function() {
         });
         map.addControl(mousePositionControl);
 
-
+        var scaleLineControl = new ol.control.ScaleLine({units:'us'});
+        map.addControl(scaleLineControl);
 
     };
 
