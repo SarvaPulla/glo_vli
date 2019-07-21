@@ -19,6 +19,8 @@ var LIBRARY_OBJECT = (function() {
 	 *************************************************************************/
 	var current_layer,
 		ContextMenuBase,
+		counties_source,
+		counties_layer,
 		element,
 		layers,
 		layersDict,
@@ -59,7 +61,7 @@ var LIBRARY_OBJECT = (function() {
 		// });
 
 		wms_source = new ol.source.ImageWMS({
-			url: 'http://hydropad.org:8181/geoserver/wms',
+			url: 'http://localhost:8181/geoserver/wms',
 			params: {'LAYERS': 'glo_vli:points'},
 			serverType: 'geoserver',
 			crossOrigin: 'Anonymous'
@@ -108,13 +110,29 @@ var LIBRARY_OBJECT = (function() {
 
 		});
 
-		layers = [base_map, base_map2, base_map3];
+		counties_source = new ol.source.ImageWMS({
+			url: 'http://hydropad.org:8181/geoserver/wms',
+			params: {
+				'LAYERS': 'glo_vli:TexasCounties'
+			},
+			serverType: 'geoserver',
+			crossOrigin: 'Anonymous'
+		});
+
+		counties_layer = new ol.layer.Image({
+			name: 'Counties',
+			title: "Counties",
+			source: counties_source
+		});
+
+
+		layers = [base_map, base_map2, base_map3, counties_layer];
 
 		map = new ol.Map({
 			target: 'map',
 			view: new ol.View({
 				center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
-				zoom: 10,
+				zoom: 9,
 				minZoom: 2,
 				maxZoom: 18
 			}),
@@ -149,7 +167,6 @@ var LIBRARY_OBJECT = (function() {
 
 		var view = map.getView();
 		var viewResolution = view.getResolution();
-
 
 		var wms_url = current_layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, view.getProjection(), {'INFO_FORMAT': 'application/json'}); //Get the wms url for the clicked point
 		if (wms_url) {
@@ -213,7 +230,7 @@ var LIBRARY_OBJECT = (function() {
 			}
 			var pixel = map.getEventPixel(evt.originalEvent);
 			var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-				if (layer != layers[0] ){
+				if (layer != layers[0] && layer != layers[1] && layer != layers[2] && layer != layers[3]){
 					current_layer = layer;
 					return true;
 				}
@@ -232,7 +249,6 @@ var LIBRARY_OBJECT = (function() {
 
 	addContextMenuToListItem = function ($listItem) {
 		var contextMenuId;
-		console.log($listItem);
 		$listItem.find('.hmbrgr-div img')
 			.contextMenu('menu', ContextMenuBase, {
 				'triggerOn': 'click',
@@ -277,7 +293,7 @@ var LIBRARY_OBJECT = (function() {
 
 				// addContextMenuToListItem($list_item);
 				wms_source = new ol.source.ImageWMS({
-					url: 'http://hydropad.org:8181/geoserver/wms',
+					url: 'http://localhost:8181/geoserver/wms',
 					params: {
 						'LAYERS': 'glo_vli:polygons',
 						'CQL_FILTER': cql_str
@@ -306,7 +322,7 @@ var LIBRARY_OBJECT = (function() {
 
 				// addContextMenuToListItem($list_item);
 				wms_source = new ol.source.ImageWMS({
-					url: 'http://hydropad.org:8181/geoserver/wms',
+					url: 'http://localhost:8181/geoserver/wms',
 					params: {
 						'LAYERS': 'glo_vli:points',
 						'CQL_FILTER': cql_str
@@ -329,6 +345,8 @@ var LIBRARY_OBJECT = (function() {
 	};
 
 
+
+
 	$(document).on('change', '.chkbx-layer', function () {
 		var displayName = $(this).next().text();
 		layersDict[displayName].setVisible($(this).is(':checked'));
@@ -345,12 +363,12 @@ var LIBRARY_OBJECT = (function() {
 	 *                        DEFINE PUBLIC INTERFACE
 	 *************************************************************************/
 	/*
-	 * Library object that contains public facing functions of the package.
-	 * This is the object that is returned by the library wrapper function.
-	 * See below.
-	 * NOTE: The functions in the public interface have access to the private
-	 * functions of the library because of JavaScript function scope.
-	 */
+     * Library object that contains public facing functions of the package.
+     * This is the object that is returned by the library wrapper function.
+     * See below.
+     * NOTE: The functions in the public interface have access to the private
+     * functions of the library because of JavaScript function scope.
+     */
 	public_interface = {
 
 	};
@@ -363,6 +381,40 @@ var LIBRARY_OBJECT = (function() {
 	// the DOM tree finishes loading
 	$(function() {
 		init_all();
+		$("#select-county").change(function() {
+			var counties = ($("#select-county").val());
+
+			if(counties){
+				var county_str = "'" + counties.join("','") + "'";
+				counties_source.updateParams({'CQL_FILTER': 'CNTY_NM IN ('+ county_str +')'});
+				for (var key in layersDict) {
+					var layer_source = layersDict[key].getSource();
+					var layer_name = layersDict[key].get('name');
+					map.getLayers().forEach(function (el) {
+						if (el.get('name') == key) {
+							layer_source.updateParams({'CQL_FILTER': 'county IN ('+ county_str +')'});
+						}
+					});
+				}
+			}else{
+				var county_options = $("#select-county")[0].options;
+				var values = $.map(county_options, function( elem ) {
+					return (elem.value);
+				});
+				var county_str = "'" + values.join("','") + "'";
+				counties_source.updateParams({'CQL_FILTER': 'CNTY_NM IN ('+ county_str +')'});
+				for (var key in layersDict) {
+					var layer_source = layersDict[key].getSource();
+					var layer_name = layersDict[key].get('name');
+					map.getLayers().forEach(function (el) {
+						if (el.get('name') == key) {
+							layer_source.updateParams({'CQL_FILTER': 'county IN ('+ county_str +')'});
+						}
+					});
+				}
+			}
+
+		});
 	});
 
 	return public_interface;

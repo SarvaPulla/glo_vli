@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from tethys_sdk.gizmos import Button, MVDraw, MapView, TextInput, SelectInput
-from .utils import add_points, user_permission_test, add_polygons
+from .utils import add_points, user_permission_test, add_polygons, get_counties_options
 from .app import GloVli
 from .model import *
 
@@ -13,8 +13,19 @@ def home(request):
     # add_points()
     # add_polygons()
 
-    context = {
+    counties_options = get_counties_options()
 
+    select_counties_input = SelectInput(display_text='Select County(s)',
+                                        name='select-county',
+                                        multiple=True,
+                                        original=False,
+                                        options=counties_options,
+                                        # initial=counties_options[0],
+                                        attributes={'id': 'select-county'})
+    #
+
+    context = {
+        'select_counties_input': select_counties_input
     }
 
     return render(request, 'glo_vli/home.html', context)

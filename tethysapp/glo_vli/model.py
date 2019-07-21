@@ -24,10 +24,11 @@ class Points(Base):
     year = Column(String)
     source = Column(String)
     elevation = Column(Float)
+    county = Column(String)
     approved = Column(Boolean)
     geometry = Column(Geometry('POINT', srid=4326))
 
-    def __init__(self, layer_name, latitude, longitude, year, source, elevation, approved):
+    def __init__(self, layer_name, latitude, longitude, year, source, elevation, county, approved):
         """
         Constructor for a gage
         """
@@ -38,6 +39,7 @@ class Points(Base):
         self.year = year
         self.source = source
         self.elevation = elevation
+        self.county = county
         self.approved = approved
         self.geometry = 'SRID=4326;POINT({0} {1})'.format(longitude, latitude)
 
@@ -54,10 +56,11 @@ class Polygons(Base):
     layer_name = Column(String)
     year = Column(String)
     source = Column(String)
+    county = Column(String)
     approved = Column(Boolean)
     geometry = Column(Geometry('GEOMETRY', srid=4326))
 
-    def __init__(self, layer_name, year, source, approved, geometry):
+    def __init__(self, layer_name, year, source, county, approved, geometry):
         """
         Constructor for a gage
         """
@@ -65,6 +68,7 @@ class Polygons(Base):
         self.layer_name = layer_name
         self.year = year
         self.source = source
+        self.county = county
         self.approved = approved
         self.geometry = 'SRID=4326;{0}'.format(geometry)
 
