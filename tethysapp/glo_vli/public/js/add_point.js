@@ -17,7 +17,8 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                      MODULE LEVEL / GLOBAL VARIABLES
      *************************************************************************/
-    var layers,
+    var input_counter,
+        layers,
         map,
         public_interface;				// Object returned by the module
 
@@ -28,6 +29,7 @@ var LIBRARY_OBJECT = (function() {
      *                    PRIVATE FUNCTION DECLARATIONS
      *************************************************************************/
     var add_point,
+        add_meta_input,
         clear_coords,
         init_events,
         init_jquery_vars,
@@ -67,7 +69,7 @@ var LIBRARY_OBJECT = (function() {
     };
 
     init_jquery_vars = function(){
-
+        input_counter = 1;
     };
 
     init_map = function(){
@@ -244,7 +246,7 @@ var LIBRARY_OBJECT = (function() {
     };
 
     add_point = function(){
-        reset_alert();
+        // reset_alert();
         var year = $("#year-input").val();
         var layer = $("#select-layer option:selected").val();
         var source = $("#source-input").val();
@@ -286,9 +288,63 @@ var LIBRARY_OBJECT = (function() {
                 addErrorMessage(return_data["error"]);
             }
         });
+
+        // var inputValues = $('#meta-group :input').map(function() {
+        //     var type = $(this).prop("type");
+        //     var id = $(this).prop("id");
+        //
+        //     // checked radios/checkboxes
+        //     if (type == "text") {
+        //         console.log(id);
+        //         console.log($(this).val());
+        //     }
+        //     // all other fields, except buttons
+        //     else if (type == "file") {
+        //         console.log(id);
+        //         console.log($(this).val());
+        //     }
+        // });
+
+
     };
 
     $("#submit-add-point").click(add_point);
+
+    add_meta_input = function(){
+        var input_type = $("#select-meta option:selected").val();
+        if(input_type == 'text'){
+            $("#meta-group").append('<div class="input-group">\n' +
+                '<input type="text" class="form-control"  id="meta' + input_counter +'" placeholder="External Link" >' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default remove" type="submit">' +
+                '<i class="glyphicon glyphicon-remove"></i>' +
+                '</button>' +
+                '</div>' +
+                '</div>');
+            $('.remove').click(function() {
+                $(this).parent().parent().remove();
+            });
+            input_counter ++;
+        }
+        if(input_type == 'file'){
+            $("#meta-group").append('<div class="input-group">\n' +
+                '<input type="file" class="form-control"  id="meta' + input_counter +'" placeholder="External File" >' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default remove" type="submit">' +
+                '<i class="glyphicon glyphicon-remove"></i>' +
+                '</button>' +
+                '</div>' +
+                '</div>');
+            $('.remove').click(function() {
+                $(this).parent().parent().remove();
+            });
+            input_counter ++;
+        }
+
+
+    };
+
+    $("#submit-add-meta").click(add_meta_input);
 
     init_all = function(){
         init_jquery_vars();

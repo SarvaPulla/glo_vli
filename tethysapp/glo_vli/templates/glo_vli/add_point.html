@@ -11,6 +11,12 @@
         width: 100%;
         position: relative;
     }
+    /*remove*/
+    /*{*/
+    /*    float:right;*/
+    /*    display:block;*/
+    /*    margin:5px;*/
+    /*}*/
 </style>
 <h3>Add a point</h3>
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
@@ -26,6 +32,14 @@
 {% gizmo source_input %}
 {% gizmo year_input %}
 {% gizmo elevation_input %}
+{% gizmo select_meta_input %}
+{% gizmo  add_meta_button %}
+<br><br>
+<form id='meta-group' name='meta-group' class='meta-group'>
+
+</form>
+<br>
+<br>
 {% gizmo  add_button %}
 {% endblock %}
 

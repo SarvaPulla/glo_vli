@@ -4,6 +4,8 @@ from tethys_sdk.gizmos import Button, MVDraw, MapView, TextInput, SelectInput
 from .utils import add_points, user_permission_test, add_polygons, get_counties_options
 from .app import GloVli
 from .model import *
+from .config import geoserver_wms_url
+
 
 def home(request):
     """
@@ -22,10 +24,12 @@ def home(request):
                                         options=counties_options,
                                         # initial=counties_options[0],
                                         attributes={'id': 'select-county'})
-    #
+
+    print(geoserver_wms_url)
 
     context = {
-        'select_counties_input': select_counties_input
+        'select_counties_input': select_counties_input,
+        'geoserver_wms_url': geoserver_wms_url
     }
 
     return render(request, 'glo_vli/home.html', context)
@@ -67,12 +71,27 @@ def add_point(request):
                         name='submit-add-point',
                         attributes={'id': 'submit-add-point'}, )
 
+    add_meta_button = Button(display_text='Add Metadata',
+                        icon='glyphicon glyphicon-plus',
+                        style='primary',
+                        name='submit-add-meta',
+                        attributes={'id': 'submit-add-meta'}, )
+
+    select_meta_input = SelectInput(display_text='Select Metadata Type',
+                                     name='select-meta',
+                                     multiple=False,
+                                     original=True,
+                                     options=[('External Link', 'text'),
+                                              ('File', 'file')],)
+
     context = {
         'lon_lat_input': lon_lat_input,
         'select_layer_input': select_layer_input,
         'year_input': year_input,
         'source_input': source_input,
         'elevation_input': elevation_input,
+        'add_meta_button': add_meta_button,
+        'select_meta_input': select_meta_input,
         'add_button': add_button
 
     }

@@ -22,6 +22,7 @@ var LIBRARY_OBJECT = (function() {
 		counties_source,
 		counties_layer,
 		element,
+		gs_wms_url,
 		layers,
 		layersDict,
 		map,
@@ -50,8 +51,9 @@ var LIBRARY_OBJECT = (function() {
 	 *                    PRIVATE FUNCTION IMPLEMENTATIONS
 	 *************************************************************************/
 	init_jquery_vars = function(){
-		vli_layers = ['S_FIRM_PAN', 'S_FLD_HAZ_AR','HighWaterMarks', 'LowWaterCrossings'];
-		var $layers_element = $('#layers');
+		vli_layers = ['FLD_HAZ_AR', 'WTR_AR','HighWaterMarks', 'LowWaterCrossings'];
+		var $meta_element = $("#metadata");
+        gs_wms_url = $meta_element.attr('data-wms-url');
 	};
 
 	init_map = function(){
@@ -61,7 +63,7 @@ var LIBRARY_OBJECT = (function() {
 		// });
 
 		wms_source = new ol.source.ImageWMS({
-			url: 'http://localhost:8181/geoserver/wms',
+			url: gs_wms_url,
 			params: {'LAYERS': 'glo_vli:points'},
 			serverType: 'geoserver',
 			crossOrigin: 'Anonymous'
@@ -111,7 +113,7 @@ var LIBRARY_OBJECT = (function() {
 		});
 
 		counties_source = new ol.source.ImageWMS({
-			url: 'http://hydropad.org:8181/geoserver/wms',
+			url: gs_wms_url,
 			params: {
 				'LAYERS': 'glo_vli:TexasCounties'
 			},
@@ -175,8 +177,6 @@ var LIBRARY_OBJECT = (function() {
 				type: "GET",
 				url: wms_url,
 				dataType: 'json',
-
-
 				success: function (result) {
 					var lname = result["features"][0]["properties"]["layer_name"];
 					var source = result["features"][0]["properties"]["source"];
@@ -284,19 +284,25 @@ var LIBRARY_OBJECT = (function() {
 
 	add_vli_layers = function(){
 		vli_layers.forEach(function(i, val){
-			if( i == 'S_FLD_HAZ_AR'|| i == 'S_FIRM_PAN' ){
+			if( i == 'FLD_HAZ_AR'|| i == 'WTR_AR' ){
 				var lyr_name = vli_layers[val];
 
 				$('<li class="ui-state-default"' + 'layer-name="' + lyr_name + '"' + '><input class="chkbx-layer" type="checkbox" checked><span class="layer-name">' + lyr_name + '</span><div class="hmbrgr-div"><img src="/static/glo_vli/images/hamburger.svg"></div></li>').appendTo('#current-layers');
 				var $list_item = $('#current-layers').find('li:last-child');
 				var cql_str = 'layer_name=' + '\'' + lyr_name + '\' AND approved=True';
+				if(i == 'FLD_HAZ_AR'){
+					var style = 'glo_vli:floodhaz';
+				}else{
+					var style= 'glo_vli:floodzone';
+				}
 
 				// addContextMenuToListItem($list_item);
 				wms_source = new ol.source.ImageWMS({
-					url: 'http://localhost:8181/geoserver/wms',
+					url: gs_wms_url,
 					params: {
 						'LAYERS': 'glo_vli:polygons',
-						'CQL_FILTER': cql_str
+						'CQL_FILTER': cql_str,
+						'STYLES': style
 					},
 					serverType: 'geoserver',
 					crossOrigin: 'Anonymous'
@@ -315,6 +321,11 @@ var LIBRARY_OBJECT = (function() {
 			else
 			{
 				var lyr_name = vli_layers[val];
+				if(i == 'LowWaterCrossings'){
+					var style = 'point';
+				}else{
+					var style= 'glo_vli:star';
+				}
 
 				$('<li class="ui-state-default"' + 'layer-name="' + lyr_name + '"' + '><input class="chkbx-layer" type="checkbox" checked><span class="layer-name">' + lyr_name + '</span><div class="hmbrgr-div"><img src="/static/glo_vli/images/hamburger.svg"></div></li>').appendTo('#current-layers');
 				var $list_item = $('#current-layers').find('li:last-child');
@@ -322,10 +333,11 @@ var LIBRARY_OBJECT = (function() {
 
 				// addContextMenuToListItem($list_item);
 				wms_source = new ol.source.ImageWMS({
-					url: 'http://localhost:8181/geoserver/wms',
+					url: gs_wms_url,
 					params: {
 						'LAYERS': 'glo_vli:points',
-						'CQL_FILTER': cql_str
+						'CQL_FILTER': cql_str,
+						'STYLES': style
 					},
 					serverType: 'geoserver',
 					crossOrigin: 'Anonymous'
