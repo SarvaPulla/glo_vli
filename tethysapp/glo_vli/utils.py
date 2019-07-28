@@ -47,7 +47,7 @@ def add_points():
                                     county = county.title()
                                     table_name = 'LowWaterCrossings'
                                     point = Points(table_name, latitude, longitude, 2019, source, 10, county,
-                                                   approved=True)
+                                                   approved=True, meta_dict={})
                                     session.add(point)
 
                                 if 'HWM' in f:
@@ -60,7 +60,7 @@ def add_points():
                                     year = row.get('Year')
                                     table_name = 'HighWaterMarks'
                                     point = Points(table_name, latitude, longitude, year, source, elevation, county,
-                                                   approved=True)
+                                                   approved=True, meta_dict={})
                                     session.add(point)
 
                             session.commit()
@@ -73,11 +73,7 @@ def add_polygons():
     counties_opts = get_counties_options()
     counties = [county[0] for county in counties_opts]
 
-    wfs_request_url = geoserver_wfs_url + '?version=1.0.0&request=GetFeature&' \
-                                          'typeNames=glo_vli:TexasCounties&outputFormat=application/json'
-
-    counties_gdf = gpd.read_file(wfs_request_url)
-    counties_gdf = counties_gdf.to_crs({'init': 'epsg:4326'})
+    counties_gdf = get_counties_gdf()
 
     for county_dir in counties_dir:
         if any(county in county_dir for county in counties):
@@ -136,3 +132,36 @@ def get_counties_options():
 
     return counties_options
 
+
+def process_meta_file(file):
+
+    app_workspace = app.get_app_workspace()
+
+    f_name = file.name
+    f_path = os.path.join(app_workspace.path, f_name)
+
+    with open(f_path, 'wb') as f_local:
+        f_local.write(file.read())
+
+    return f_name
+
+
+def get_counties_gdf():
+    wfs_request_url = geoserver_wfs_url + '?version=1.0.0&request=GetFeature&' \
+                                          'typeNames=glo_vli:TexasCounties&outputFormat=application/json'
+
+    counties_gdf = gpd.read_file(wfs_request_url)
+    counties_gdf = counties_gdf.to_crs({'init': 'epsg:4326'})
+
+    return counties_gdf
+
+
+def get_county_name(longitude, latitude):
+
+    counties_gdf = get_counties_gdf()
+    pdf = pd.DataFrame({'Name': ['point'], 'Latitude': [float(latitude)], 'Longitude': [float(longitude)]})
+    pgdf = gpd.GeoDataFrame(pdf, geometry=gpd.points_from_xy(pdf.Longitude, pdf.Latitude))
+    pointInPoly = gpd.sjoin(pgdf, counties_gdf, op='within')
+    county = pointInPoly.CNTY_NM[0]
+
+    return county

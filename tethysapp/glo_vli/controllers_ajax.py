@@ -8,7 +8,7 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 from sqlalchemy.exc import IntegrityError
 from .model import *
 from .app import GloVli
-from .utils import user_permission_test
+from .utils import user_permission_test, process_meta_file, get_county_name
 import requests
 from shapely.geometry import shape
 import os
@@ -32,10 +32,31 @@ def point_add(request):
         longitude = point.split(',')[0]
         latitude = point.split(',')[1]
 
+        county = get_county_name(longitude, latitude)
+
+        meta_dict = {}
+
+        meta_text = info.get('meta_text')
+        meta_file = info.get('meta_file')
+
+        if meta_text:
+            meta_text = meta_text.split(',')
+
+        if meta_file:
+            meta_file = meta_file.split(',')
+
+        if len(meta_text) > 0:
+            for txt in meta_text:
+                meta_dict[txt] = info.get(txt)
+
+        if len(meta_file) > 0:
+            for file in meta_file:
+                meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
+
         Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
         session = Session()
         point_obj = Points(layer_name=layer, latitude=latitude, longitude=longitude, year=year,
-                           source=source, elevation=elevation, approved=False)
+                           source=source, elevation=elevation, county=county, approved=False, meta_dict=meta_dict)
         session.add(point_obj)
         session.commit()
         session.close()

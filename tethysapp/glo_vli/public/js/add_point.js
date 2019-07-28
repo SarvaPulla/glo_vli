@@ -252,35 +252,65 @@ var LIBRARY_OBJECT = (function() {
         var source = $("#source-input").val();
         var elevation = $("#elevation-input").val();
         var lon_lat = $("#lon-lat-input").val();
+        //
+        // if(source == ""){
+        //     addErrorMessage("Source cannot be empty!");
+        //     return false;
+        // }else{
+        //     reset_alert();
+        // }
+        // if(year == ""){
+        //     addErrorMessage("Year cannot be empty!");
+        //     return false;
+        // }else{
+        //     reset_alert();
+        // }
+        //
+        // if(elevation == ""){
+        //     addErrorMessage("Elevation cannot be empty!");
+        //     return false;
+        // }else{
+        //     reset_alert();
+        // }
+        // if(lon_lat == ""){
+        //     addErrorMessage("Please select a point on the map!");
+        //     return false;
+        // }else{
+        //     reset_alert();
+        // }
 
-        if(source == ""){
-            addErrorMessage("Source cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
-        if(year == ""){
-            addErrorMessage("Year cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
+        var data = new FormData();
+        var meta_text = [];
+        var meta_file = [];
 
-        if(elevation == ""){
-            addErrorMessage("Elevation cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
-        if(lon_lat == ""){
-            addErrorMessage("Please select a point on the map!");
-            return false;
-        }else{
-            reset_alert();
-        }
-        var data = {"year": year, "source": source, "layer": layer, "elevation": elevation, "point": lon_lat};
+         var inputValues = $('#meta-group :input').map(function() {
+            var type = $(this).prop("type");
+            var id = $(this).prop("id");
 
-        var xhr = ajax_update_database("submit",data);
+            // checked radios/checkboxes
+            if (type == "text") {
+                var link_text = $(this).val();
+                data.append(id, link_text);
+                meta_text.push(id);
+            }
+            // all other fields, except buttons
+            else if (type == "file") {
+                var file_content = $(this)[0].files;
+                data.append(id, file_content[0]);
+                meta_file.push(id);
+            }
+        });
+
+
+        data.append("year", year);
+        data.append("source", source);
+        data.append("layer", layer);
+        data.append("elevation", elevation);
+        data.append("point", lon_lat);
+        data.append("meta_text", meta_text);
+        data.append("meta_file", meta_file);
+
+        var xhr = ajax_update_database_with_file("submit", data);
         xhr.done(function(return_data){
             if("success" in return_data){
                 reset_form(return_data);
@@ -289,21 +319,7 @@ var LIBRARY_OBJECT = (function() {
             }
         });
 
-        // var inputValues = $('#meta-group :input').map(function() {
-        //     var type = $(this).prop("type");
-        //     var id = $(this).prop("id");
-        //
-        //     // checked radios/checkboxes
-        //     if (type == "text") {
-        //         console.log(id);
-        //         console.log($(this).val());
-        //     }
-        //     // all other fields, except buttons
-        //     else if (type == "file") {
-        //         console.log(id);
-        //         console.log($(this).val());
-        //     }
-        // });
+
 
 
     };
@@ -314,7 +330,7 @@ var LIBRARY_OBJECT = (function() {
         var input_type = $("#select-meta option:selected").val();
         if(input_type == 'text'){
             $("#meta-group").append('<div class="input-group">\n' +
-                '<input type="text" class="form-control"  id="meta' + input_counter +'" placeholder="External Link" >' +
+                '<input type="text" class="form-control"  id="meta_' + input_counter +'" placeholder="External Link" >' +
                 '<div class="input-group-btn">' +
                 '<button class="btn btn-default remove" type="submit">' +
                 '<i class="glyphicon glyphicon-remove"></i>' +
@@ -328,7 +344,7 @@ var LIBRARY_OBJECT = (function() {
         }
         if(input_type == 'file'){
             $("#meta-group").append('<div class="input-group">\n' +
-                '<input type="file" class="form-control"  id="meta' + input_counter +'" placeholder="External File" >' +
+                '<input type="file" class="form-control"  id="meta_' + input_counter +'" placeholder="External File" >' +
                 '<div class="input-group-btn">' +
                 '<button class="btn btn-default remove" type="submit">' +
                 '<i class="glyphicon glyphicon-remove"></i>' +

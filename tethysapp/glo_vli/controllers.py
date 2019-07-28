@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
 from tethys_sdk.gizmos import Button, MVDraw, MapView, TextInput, SelectInput
-from .utils import add_points, user_permission_test, add_polygons, get_counties_options
+from .utils import add_points, user_permission_test, add_polygons, get_counties_options, get_county_name
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -25,7 +25,6 @@ def home(request):
                                         # initial=counties_options[0],
                                         attributes={'id': 'select-county'})
 
-    print(geoserver_wms_url)
 
     context = {
         'select_counties_input': select_counties_input,

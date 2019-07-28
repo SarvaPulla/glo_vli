@@ -290,11 +290,11 @@ var LIBRARY_OBJECT = (function() {
 				$('<li class="ui-state-default"' + 'layer-name="' + lyr_name + '"' + '><input class="chkbx-layer" type="checkbox" checked><span class="layer-name">' + lyr_name + '</span><div class="hmbrgr-div"><img src="/static/glo_vli/images/hamburger.svg"></div></li>').appendTo('#current-layers');
 				var $list_item = $('#current-layers').find('li:last-child');
 				var cql_str = 'layer_name=' + '\'' + lyr_name + '\' AND approved=True';
-				if(i == 'FLD_HAZ_AR'){
-					var style = 'glo_vli:floodhaz';
-				}else{
-					var style= 'glo_vli:floodzone';
-				}
+				// if(i == 'FLD_HAZ_AR'){
+				// 	var style = 'glo_vli:floodhaz';
+				// }else{
+				// 	var style= 'glo_vli:floodzone';
+				// }
 
 				// addContextMenuToListItem($list_item);
 				wms_source = new ol.source.ImageWMS({
@@ -302,7 +302,7 @@ var LIBRARY_OBJECT = (function() {
 					params: {
 						'LAYERS': 'glo_vli:polygons',
 						'CQL_FILTER': cql_str,
-						'STYLES': style
+						// 'STYLES': style
 					},
 					serverType: 'geoserver',
 					crossOrigin: 'Anonymous'
@@ -321,11 +321,11 @@ var LIBRARY_OBJECT = (function() {
 			else
 			{
 				var lyr_name = vli_layers[val];
-				if(i == 'LowWaterCrossings'){
-					var style = 'point';
-				}else{
-					var style= 'glo_vli:star';
-				}
+				// if(i == 'LowWaterCrossings'){
+				// 	var style = 'point';
+				// }else{
+				// 	var style= 'glo_vli:star';
+				// }
 
 				$('<li class="ui-state-default"' + 'layer-name="' + lyr_name + '"' + '><input class="chkbx-layer" type="checkbox" checked><span class="layer-name">' + lyr_name + '</span><div class="hmbrgr-div"><img src="/static/glo_vli/images/hamburger.svg"></div></li>').appendTo('#current-layers');
 				var $list_item = $('#current-layers').find('li:last-child');
@@ -337,7 +337,7 @@ var LIBRARY_OBJECT = (function() {
 					params: {
 						'LAYERS': 'glo_vli:points',
 						'CQL_FILTER': cql_str,
-						'STYLES': style
+						// 'STYLES': style
 					},
 					serverType: 'geoserver',
 					crossOrigin: 'Anonymous'
@@ -404,6 +404,7 @@ var LIBRARY_OBJECT = (function() {
 					var layer_name = layersDict[key].get('name');
 					map.getLayers().forEach(function (el) {
 						if (el.get('name') == key) {
+							console.log(el.get('name'));
 							layer_source.updateParams({'CQL_FILTER': 'county IN ('+ county_str +')'});
 						}
 					});
