@@ -71,17 +71,17 @@ def add_point(request):
                         attributes={'id': 'submit-add-point'}, )
 
     add_meta_button = Button(display_text='Add Metadata',
-                        icon='glyphicon glyphicon-plus',
-                        style='primary',
-                        name='submit-add-meta',
-                        attributes={'id': 'submit-add-meta'}, )
+                             icon='glyphicon glyphicon-plus',
+                             style='primary',
+                             name='submit-add-meta',
+                             attributes={'id': 'submit-add-meta'}, )
 
     select_meta_input = SelectInput(display_text='Select Metadata Type',
-                                     name='select-meta',
-                                     multiple=False,
-                                     original=True,
-                                     options=[('External Link', 'text'),
-                                              ('File', 'file')],)
+                                    name='select-meta',
+                                    multiple=False,
+                                    original=True,
+                                    options=[('External Link', 'text'),
+                                             ('File', 'file')],)
 
     context = {
         'lon_lat_input': lon_lat_input,
@@ -107,9 +107,76 @@ def approve_points(request):
     num_points = session.query(Points).filter_by(approved=False).count()
     session.close()
 
+    id_input = TextInput(display_text='Feature ID',
+                         name='id-input',
+                         placeholder='',
+                         attributes={'id': 'id-input', 'readonly': 'true'})
+
+    layer_input = TextInput(display_text='Layer',
+                            name='layer-input',
+                            placeholder='',
+                            attributes={'id': 'layer-input', 'readonly': 'true'})
+
+    lon_input = TextInput(display_text='Longitude',
+                          name='lon-input',
+                          placeholder='e.g.: -90.3',
+                          attributes={'id': 'lon-input'}, )
+
+    lat_input = TextInput(display_text='Latitude',
+                          name='lat-input',
+                          placeholder='e.g.: 30.5',
+                          attributes={'id': 'lat-input'}, )
+
+    year_input = TextInput(display_text='Year',
+                           name='year-input',
+                           placeholder='e.g.: 2019',
+                           attributes={'id': 'year-input'})
+
+    source_input = TextInput(display_text='Source',
+                             name='source-input',
+                             placeholder='e.g.: FIS',
+                             attributes={'id': 'source-input'})
+
+    elevation_input = TextInput(display_text='Elevation',
+                                name='elevation-input',
+                                placeholder='e.g.: 8',
+                                attributes={'id': 'elevation-input'})
+
+    approved_input = SelectInput(display_text='Approved',
+                                 name='approved-input',
+                                 attributes={'id': 'approved-input'},
+                                 multiple=False,
+                                 options=[('True', 'True'),
+                                          ('False', 'False')]
+                                 )
+
+    add_meta_button = Button(display_text='Add Metadata',
+                             icon='glyphicon glyphicon-plus',
+                             style='primary',
+                             name='submit-add-meta',
+                             attributes={'id': 'submit-add-meta'}, )
+
+    select_meta_input = SelectInput(display_text='Select Metadata Type',
+                                    name='select-meta',
+                                    multiple=False,
+                                    original=True,
+                                    options=[('External Link', 'text'),
+                                             ('File', 'file')],)
+
     context = {
         'num_points': num_points,
-        'initial_page': 0
+        'initial_page': 0,
+        'geoserver_wms_url': geoserver_wms_url,
+        'add_meta_button': add_meta_button,
+        'id_input': id_input,
+        'select_meta_input': select_meta_input,
+        'lon_input': lon_input,
+        'lat_input': lat_input,
+        'year_input': year_input,
+        'source_input': source_input,
+        'elevation_input': elevation_input,
+        'layer_input': layer_input,
+        'approved_input': approved_input
     }
 
     return render(request, 'glo_vli/approve_points.html', context)
@@ -126,9 +193,9 @@ def approve_points_table(request):
     page = int(request.GET.get('page'))
 
     # Query DB for data store types
-    points = session.query(Points)\
-                    .order_by(Points.id) \
-                    .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
+    points = session.query(Points) \
+                 .order_by(Points.id) \
+                 .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
 
     prev_button = Button(display_text='Previous',
                          name='prev_button',
@@ -139,10 +206,10 @@ def approve_points_table(request):
                          attributes={'class': 'nav_button'},)
 
     context = {
-                'prev_button': prev_button,
-                'next_button': next_button,
-                'points': points,
-              }
+        'prev_button': prev_button,
+        'next_button': next_button,
+        'points': points,
+    }
 
     session.close()
 
@@ -220,9 +287,9 @@ def approve_polygons_table(request):
     page = int(request.GET.get('page'))
 
     # Query DB for data store types
-    polygons = session.query(Polygons)\
-                    .order_by(Polygons.id) \
-                    .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
+    polygons = session.query(Polygons) \
+                   .order_by(Polygons.id) \
+                   .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
 
     prev_button = Button(display_text='Previous',
                          name='prev_button',
@@ -233,10 +300,10 @@ def approve_polygons_table(request):
                          attributes={'class': 'nav_button'},)
 
     context = {
-                'prev_button': prev_button,
-                'next_button': next_button,
-                'polygons': polygons
-              }
+        'prev_button': prev_button,
+        'next_button': next_button,
+        'polygons': polygons
+    }
 
     session.close()
 

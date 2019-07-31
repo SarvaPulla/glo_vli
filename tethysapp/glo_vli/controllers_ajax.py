@@ -38,6 +38,7 @@ def point_add(request):
 
         meta_text = info.get('meta_text')
         meta_file = info.get('meta_file')
+        print(meta_file, meta_text)
 
         if meta_text:
             meta_text = meta_text.split(',')
@@ -84,6 +85,29 @@ def point_update(request):
         point_elevation = post_info.get('point_elevation')
         point_approved = post_info.get('point_approved')
 
+        meta_text = post_info.get('meta_text')
+        meta_file = post_info.get('meta_file')
+
+        meta_dict = {}
+
+        if meta_text:
+            meta_text = meta_text.split(',')
+
+        if meta_file:
+            meta_file = meta_file.split(',')
+
+        if len(meta_text) > 0:
+            for txt in meta_text:
+                meta_dict[txt] = post_info.get(txt)
+
+        if len(meta_file) > 0:
+            for file in meta_file:
+                f_result = post_info.get(file)
+                if f_result is not None:
+                    meta_dict[file] = f_result
+                else:
+                    meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
+
         # check data
         if not point_id or not point_layer_name or not point_approved or not \
                 point_latitude or not point_longitude or not point_year or not point_source:
@@ -107,6 +131,7 @@ def point_update(request):
             point.elevation = point_elevation
             point.approved = eval(point_approved)
             point.geometry = 'SRID=4326;POINT({0} {1})'.format(point_longitude, point_latitude)
+            point.meta_dict = meta_dict
 
             session.commit()
             session.close()
