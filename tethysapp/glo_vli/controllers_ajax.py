@@ -21,51 +21,54 @@ import geojson
 @user_passes_test(user_permission_test)
 def point_add(request):
 
-    response = {}
+    try:
 
-    if request.is_ajax() and request.method == 'POST':
-        info = request.POST
+        if request.is_ajax() and request.method == 'POST':
+            info = request.POST
 
-        year = info.get('year')
-        source = info.get('source')
-        layer = info.get('layer')
-        elevation = info.get('elevation')
-        point = info.get('point')
-        longitude = point.split(',')[0]
-        latitude = point.split(',')[1]
+            year = info.get('year')
+            source = info.get('source')
+            layer = info.get('layer')
+            elevation = info.get('elevation')
+            point = info.get('point')
+            longitude = point.split(',')[0]
+            latitude = point.split(',')[1]
 
-        county = get_point_county_name(longitude, latitude)
+            county = get_point_county_name(longitude, latitude)
 
-        meta_dict = {}
+            meta_dict = {}
 
-        meta_text = info.get('meta_text')
-        meta_file = info.get('meta_file')
+            meta_text = info.get('meta_text')
+            meta_file = info.get('meta_file')
 
-        if meta_text:
-            meta_text = meta_text.split(',')
+            if meta_text:
+                meta_text = meta_text.split(',')
 
-        if meta_file:
-            meta_file = meta_file.split(',')
+            if meta_file:
+                meta_file = meta_file.split(',')
 
-        if len(meta_text) > 0:
-            for txt in meta_text:
-                meta_dict[txt] = info.get(txt)
+            if len(meta_text) > 0:
+                for txt in meta_text:
+                    meta_dict[txt] = info.get(txt)
 
-        if len(meta_file) > 0:
-            for file in meta_file:
-                meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
+            if len(meta_file) > 0:
+                for file in meta_file:
+                    meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
-        point_obj = Points(layer_name=layer, latitude=latitude, longitude=longitude, year=year,
-                           source=source, elevation=elevation, county=county, approved=False, meta_dict=meta_dict)
-        session.add(point_obj)
-        session.commit()
-        session.close()
+            Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+            session = Session()
+            point_obj = Points(layer_name=layer, latitude=latitude, longitude=longitude, year=year,
+                               source=source, elevation=elevation, county=county, approved=False, meta_dict=meta_dict)
+            session.add(point_obj)
+            session.commit()
+            session.close()
 
-        response = {"success": "success"}
+            response = {"success": "success"}
 
-        return JsonResponse(response)
+            return JsonResponse(response)
+
+    except Exception as e:
+        return JsonResponse({'error': "There is a problem with your request. " + str(e)})
 
 
 @user_passes_test(user_permission_test)
@@ -177,7 +180,6 @@ def point_delete(request):
 @user_passes_test(user_permission_test)
 def polygon_add(request):
 
-    response = {}
     try:
         if request.is_ajax() and request.method == 'POST':
             info = request.POST
