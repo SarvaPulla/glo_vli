@@ -1,7 +1,7 @@
 from django.shortcuts import render
-from django.contrib.auth.decorators import login_required, user_passes_test
-from tethys_sdk.gizmos import Button, MVDraw, MapView, TextInput, SelectInput
-from .utils import add_points, user_permission_test, add_polygons, get_counties_options, get_county_name
+from django.contrib.auth.decorators import user_passes_test
+from tethys_sdk.gizmos import Button, TextInput, SelectInput
+from .utils import user_permission_test, get_counties_options, add_polygons, add_points
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -25,7 +25,6 @@ def home(request):
                                         # initial=counties_options[0],
                                         attributes={'id': 'select-county'})
 
-
     context = {
         'select_counties_input': select_counties_input,
         'geoserver_wms_url': geoserver_wms_url
@@ -46,7 +45,8 @@ def add_point(request):
                                      name='select-layer',
                                      multiple=False,
                                      original=True,
-                                     options=[('LowWaterCrossings', 'LowWaterCrossings'), ('HighWaterMarks', 'HighWaterMarks')],
+                                     options=[('LowWaterCrossings', 'LowWaterCrossings'),
+                                              ('HighWaterMarks', 'HighWaterMarks')],
                                      initial=['LowWaterCrossings_Int'])
 
     year_input = TextInput(display_text='Year',
@@ -228,8 +228,8 @@ def add_polygon(request):
                                      name='select-layer',
                                      multiple=False,
                                      original=True,
-                                     options=[('S_FIRM_PAN', 'S_FIRM_PAN'), ('S_FLD_HAZ_AR', 'S_FLD_HAZ_AR')],
-                                     initial=['S_FLD_HAZ_AR'])
+                                     options=[('WTR_AR', 'WTR_AR'), ('FLD_HAZ_AR', 'FLD_HAZ_AR')],
+                                     initial=['FLD_HAZ_AR'])
 
     year_input = TextInput(display_text='Year',
                            name='year-input',
@@ -247,13 +247,27 @@ def add_polygon(request):
                         name='submit-add-point',
                         attributes={'id': 'submit-add-polygon'}, )
 
+    add_meta_button = Button(display_text='Add Metadata',
+                             icon='glyphicon glyphicon-plus',
+                             style='primary',
+                             name='submit-add-meta',
+                             attributes={'id': 'submit-add-meta'}, )
+
+    select_meta_input = SelectInput(display_text='Select Metadata Type',
+                                    name='select-meta',
+                                    multiple=False,
+                                    original=True,
+                                    options=[('External Link', 'text'),
+                                             ('File', 'file')],)
+
     context = {
         'polygon_input': polygon_input,
         'select_layer_input': select_layer_input,
         'year_input': year_input,
         'source_input': source_input,
-        'add_button': add_button
-
+        'add_button': add_button,
+        'add_meta_button': add_meta_button,
+        'select_meta_input': select_meta_input
     }
 
     return render(request, 'glo_vli/add_polygon.html', context)
@@ -268,9 +282,58 @@ def approve_polygons(request):
     num_polygons = session.query(Polygons).filter_by(approved=False).count()
     session.close()
 
+    id_input = TextInput(display_text='Feature ID',
+                         name='id-input',
+                         placeholder='',
+                         attributes={'id': 'id-input', 'readonly': 'true'})
+
+    layer_input = TextInput(display_text='Layer',
+                            name='layer-input',
+                            placeholder='',
+                            attributes={'id': 'layer-input', 'readonly': 'true'})
+
+    year_input = TextInput(display_text='Year',
+                           name='year-input',
+                           placeholder='e.g.: 2019',
+                           attributes={'id': 'year-input'})
+
+    source_input = TextInput(display_text='Source',
+                             name='source-input',
+                             placeholder='e.g.: FIS',
+                             attributes={'id': 'source-input'})
+
+    approved_input = SelectInput(display_text='Approved',
+                                 name='approved-input',
+                                 attributes={'id': 'approved-input'},
+                                 multiple=False,
+                                 options=[('True', 'True'),
+                                          ('False', 'False')]
+                                 )
+
+    add_meta_button = Button(display_text='Add Metadata',
+                             icon='glyphicon glyphicon-plus',
+                             style='primary',
+                             name='submit-add-meta',
+                             attributes={'id': 'submit-add-meta'}, )
+
+    select_meta_input = SelectInput(display_text='Select Metadata Type',
+                                    name='select-meta',
+                                    multiple=False,
+                                    original=True,
+                                    options=[('External Link', 'text'),
+                                             ('File', 'file')],)
+
     context = {
         'num_polygons': num_polygons,
-        'initial_page': 0
+        'initial_page': 0,
+        'geoserver_wms_url': geoserver_wms_url,
+        'id_input': id_input,
+        'layer_input': layer_input,
+        'year_input': year_input,
+        'source_input': source_input,
+        'approved_input': approved_input,
+        'add_meta_button': add_meta_button,
+        'select_meta_input': select_meta_input
     }
 
     return render(request, 'glo_vli/approve_polygons.html', context)
@@ -308,4 +371,3 @@ def approve_polygons_table(request):
     session.close()
 
     return render(request, 'glo_vli/approve_polygons_table.html', context)
-

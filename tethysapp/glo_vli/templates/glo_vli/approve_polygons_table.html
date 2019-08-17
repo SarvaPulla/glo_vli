@@ -10,6 +10,7 @@
         <th>Layer Name</th>
         <th>Year</th>
         <th>Source</th>
+        <th>Metadata</th>
         <th>Approved</th>
         </thead>
         <tbody>
@@ -19,8 +20,8 @@
                 <span class="glyphicon glyphicon-sunglasses"></span> View </a>
             </div>
             </td>
-            <td class="table-button"><div class=" btn-group "><a name="submit-update-polygon" class="btn btn-warning submit-update-polygon" role="button">
-                <span class="glyphicon glyphicon-floppy-disk"></span> Update </a>
+            <td class="table-button"><div class=" btn-group "><a name="submit-update-form" class="btn btn-warning submit-update-form" role="button">
+                <span class="glyphicon glyphicon-floppy-disk"></span> Update Form</a>
             </div>
             </td>
             <td class="table-button"><div class=" btn-group "><a name="submit-delete-polygon" class="btn btn-danger submit-delete-polygon" role="button">
@@ -29,9 +30,10 @@
             </td>
             <td class="polygon-id">{{polygon.id}}</td>
             <td class="polygon-layer-name" >{{polygon.layer_name}}</td>
-            <td class="polygon-year" contenteditable>{{polygon.year}}</td>
-            <td class="polygon-source" contenteditable>{{polygon.source}}</td>
-            <td class="polygon-approved" contenteditable>{{polygon.approved}}</td>
+            <td class="polygon-year" >{{polygon.year}}</td>
+            <td class="polygon-source" >{{polygon.source}}</td>
+            <td class="polygon-meta">{{polygon.meta_dict}}</td>
+            <td class="polygon-approved" >{{polygon.approved}}</td>
         </tr>
         {% endfor %}
         </tbody>

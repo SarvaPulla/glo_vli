@@ -17,10 +17,13 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                      MODULE LEVEL / GLOBAL VARIABLES
      *************************************************************************/
-    var layers,
+    var gs_wms_url,
+        input_counter,
+        layers,
         map,
         m_uploading_data,
         m_results_per_page,
+        $modalUpdate,
         public_interface,				// Object returned by the module
         wms_source,
         wms_layer;
@@ -76,7 +79,9 @@ var LIBRARY_OBJECT = (function() {
     };
 
     init_jquery_vars = function(){
-
+        var $meta_element = $("#metadata");
+        gs_wms_url = $meta_element.attr('data-wms-url');
+        $modalUpdate = $("#update-modal");
     };
 
     init_map = function(){
@@ -160,7 +165,7 @@ var LIBRARY_OBJECT = (function() {
                         </NamedLayer>\
                         </StyledLayerDescriptor>';
             wms_source = new ol.source.ImageWMS({
-                url: 'http://hydropad.org:8181/geoserver/wms',
+                url: gs_wms_url,
                 params: {'LAYERS': 'glo_vli:polygons',
                     'FeatureID': polygon_id},
                 serverType: 'geoserver',
@@ -177,7 +182,9 @@ var LIBRARY_OBJECT = (function() {
 
 
         //handle the submit update event
-        $('.submit-update-polygon').off().click(function(){
+        $('.submit-update-form').off().click(function(){
+             $modalUpdate.modal('show');
+             $("#meta-group").html('');
             //scroll back to top
             window.scrollTo(0,0);
             //clear messages
@@ -193,28 +200,111 @@ var LIBRARY_OBJECT = (function() {
             var safe_to_submit = {val: true, error:""};
             var parent_row = $(this).parent().parent().parent();
             var polygon_id = parent_row.find('.polygon-id').text();
+            var polygon_layer_name = checkTableCellInputWithError(parent_row.find('.polygon-layer-name'),safe_to_submit);
             var polygon_year = checkTableCellInputWithError(parent_row.find('.polygon-year'),safe_to_submit);
             var polygon_source = checkTableCellInputWithError(parent_row.find('.polygon-source'),safe_to_submit);
             var polygon_approved = checkTableCellInputWithError(parent_row.find('.polygon-approved'),safe_to_submit);
+            var polygon_meta = checkTableCellInputWithError(parent_row.find('.polygon-meta'),safe_to_submit);
+            polygon_meta = polygon_meta.replace(/\'/g, "\"");
+            polygon_meta = JSON.parse(polygon_meta);
+            input_counter = Object.keys(polygon_meta).length + 1;
 
+            $("#id-input").val(polygon_id);
+            $("#layer-input").val(polygon_layer_name);
+            $("#source-input").val(polygon_source);
+            $("#year-input").val(polygon_year);
+            $("#approved-input").val(polygon_approved).change();
 
-            var data = {
-                polygon_id: polygon_id,
-                polygon_year: polygon_year,
-                polygon_source: polygon_source,
-                polygon_approved: polygon_approved
-            };
+            $.map(polygon_meta, function(key, val){
+                var input_id = val;
 
-            //update database
-            var xhr = submitRowData($(this), data, safe_to_submit);
-            if (xhr != null) {
-                xhr.done(function (data) {
-                    if ('success' in data) {
-                        addSuccessMessage("Polygon Update Success!");
-                    }
-                });
-            }
+                if(val.indexOf('text') !== -1){
+                    $("#meta-group").append('<div class="input-group">\n' +
+                        '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External Link" value="'+key+'">' +
+                        '<div class="input-group-btn">' +
+                        '<button class="btn btn-default remove" type="submit">' +
+                        '<i class="glyphicon glyphicon-remove"></i>' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>');
+                    $('.remove').click(function() {
+                        $(this).parent().parent().remove();
+                    });
+                }
+                if(val.indexOf('file') !== -1){
+                    $("#meta-group").append('<div class="input-group">\n' +
+                        '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External File" value="'+key+'" readonly>' +
+                        '<div class="input-group-btn">' +
+                        '<button class="btn btn-default remove" type="submit">' +
+                        '<i class="glyphicon glyphicon-remove"></i>' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>');
+                    $('.remove').click(function() {
+                        $(this).parent().parent().remove();
+                    });
+                }
+            });
+
         });
+
+        $('.submit-update-polygon').off().click(function(){
+            var safe_to_submit = {val: true, error:""};
+            var polygon_id = $("#id-input").val();
+            var polygon_layer_name = $("#layer-input").val();
+            var polygon_source = $("#source-input").val();
+            var polygon_year = $("#year-input").val();
+            var polygon_approved = $("#approved-input").val();
+
+            var data = new FormData();
+
+
+            data.append("polygon_id", polygon_id);
+            data.append("polygon_layer_name", polygon_layer_name);
+            data.append("polygon_year", polygon_year);
+            data.append("polygon_source", polygon_source);
+            data.append("polygon_approved", polygon_approved);
+
+            var meta_text = [];
+            var meta_file = [];
+
+            var inputValues = $('#meta-group :input').map(function() {
+                var type = $(this).prop("type");
+                var id = $(this).prop("id");
+
+                if (id.indexOf("text") !== -1) {
+                    var link_text = $(this).val();
+                    data.append(id, link_text);
+                    meta_text.push(id);
+                }
+
+                else if (id.indexOf("file") !== -1) {
+                    if(type=="file"){
+                        var file_content = $(this)[0].files;
+                        data.append(id, file_content[0]);
+                        meta_file.push(id);
+                    }else{
+                        data.append(id, $(this).val());
+                        meta_file.push(id);
+                    }
+
+                }
+            });
+
+            data.append("meta_text", meta_text);
+            data.append("meta_file", meta_file);
+
+            var xhr = ajax_update_database_with_file("submit", data);
+            xhr.done(function(return_data){
+                if("success" in return_data){
+                    // reset_form(return_data)
+                    addSuccessMessage("Polygon Update Successful!");
+                }else if("error" in return_data){
+                    addErrorMessage(return_data["error"]);
+                }
+            });
+        });
+
 
         //handle the submit delete event
         $('.submit-delete-polygon').click(function(){

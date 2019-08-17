@@ -60,9 +60,10 @@ class Polygons(Base):
     source = Column(String)
     county = Column(String)
     approved = Column(Boolean)
+    meta_dict = Column(JSON)
     geometry = Column(Geometry('GEOMETRY', srid=4326))
 
-    def __init__(self, layer_name, year, source, county, approved, geometry):
+    def __init__(self, layer_name, year, source, county, approved, geometry, meta_dict):
         """
         Constructor for a gage
         """
@@ -72,6 +73,7 @@ class Polygons(Base):
         self.source = source
         self.county = county
         self.approved = approved
+        self.meta_dict = meta_dict
         self.geometry = 'SRID=4326;{0}'.format(geometry)
 
 

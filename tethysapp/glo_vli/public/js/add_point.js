@@ -254,32 +254,32 @@ var LIBRARY_OBJECT = (function() {
         var source = $("#source-input").val();
         var elevation = $("#elevation-input").val();
         var lon_lat = $("#lon-lat-input").val();
-        //
-        // if(source == ""){
-        //     addErrorMessage("Source cannot be empty!");
-        //     return false;
-        // }else{
-        //     reset_alert();
-        // }
-        // if(year == ""){
-        //     addErrorMessage("Year cannot be empty!");
-        //     return false;
-        // }else{
-        //     reset_alert();
-        // }
-        //
-        // if(elevation == ""){
-        //     addErrorMessage("Elevation cannot be empty!");
-        //     return false;
-        // }else{
-        //     reset_alert();
-        // }
-        // if(lon_lat == ""){
-        //     addErrorMessage("Please select a point on the map!");
-        //     return false;
-        // }else{
-        //     reset_alert();
-        // }
+
+        if(source == ""){
+            addErrorMessage("Source cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+        if(year == ""){
+            addErrorMessage("Year cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+
+        if(elevation == ""){
+            addErrorMessage("Elevation cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
+        if(lon_lat == ""){
+            addErrorMessage("Please select a point on the map!");
+            return false;
+        }else{
+            reset_alert();
+        }
 
         var data = new FormData();
         var meta_text = [];
@@ -320,9 +320,6 @@ var LIBRARY_OBJECT = (function() {
                 addErrorMessage(return_data["error"]);
             }
         });
-
-
-
 
     };
 
@@ -371,6 +368,7 @@ var LIBRARY_OBJECT = (function() {
         init_map();
         init_events();
     };
+
     /************************************************************************
      *                        DEFINE PUBLIC INTERFACE
      *************************************************************************/

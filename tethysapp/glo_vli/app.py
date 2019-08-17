@@ -30,6 +30,17 @@ class GloVli(TethysAppBase):
                 controller='glo_vli.controllers.home'
             ),
             UrlMap(
+                name='popup-info',
+                url='glo-vli/popup-info',
+                controller='glo_vli.controllers_ajax.get_popup_info'
+            ),
+            UrlMap(
+                name='get-meta-file',
+                url='glo-vli/get-meta-file',
+                controller='glo_vli.controllers_ajax.get_meta_file'
+            ),
+
+            UrlMap(
                 name='add-point',
                 url='glo-vli/add-point',
                 controller='glo_vli.controllers.add_point'

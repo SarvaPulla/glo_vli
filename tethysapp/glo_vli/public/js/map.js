@@ -27,6 +27,7 @@ var LIBRARY_OBJECT = (function() {
 		layersDict,
 		map,
 		popup,
+		popup_content,
 		public_interface,				// Object returned by the module
 		vli_layers,
 		wms_layer,
@@ -40,6 +41,7 @@ var LIBRARY_OBJECT = (function() {
 	var addContextMenuToListItem,
 		add_vli_layers,
 		get_popup,
+		generate_popup_content,
 		init_events,
 		init_jquery_vars,
 		init_all,
@@ -50,10 +52,11 @@ var LIBRARY_OBJECT = (function() {
 	/************************************************************************
 	 *                    PRIVATE FUNCTION IMPLEMENTATIONS
 	 *************************************************************************/
+
 	init_jquery_vars = function(){
 		vli_layers = ['FLD_HAZ_AR', 'WTR_AR','HighWaterMarks', 'LowWaterCrossings'];
 		var $meta_element = $("#metadata");
-        gs_wms_url = $meta_element.attr('data-wms-url');
+		gs_wms_url = $meta_element.attr('data-wms-url');
 	};
 
 	init_map = function(){
@@ -162,6 +165,11 @@ var LIBRARY_OBJECT = (function() {
 		map.addControl(switcher);
 	};
 
+	generate_popup_content = function(id){
+
+
+	};
+
 	get_popup = function(evt){
 		var clickCoord = evt.coordinate; //Get the coordinate of the clicked point
 		popup.setPosition(clickCoord);
@@ -178,22 +186,65 @@ var LIBRARY_OBJECT = (function() {
 				url: wms_url,
 				dataType: 'json',
 				success: function (result) {
-					var lname = result["features"][0]["properties"]["layer_name"];
-					var source = result["features"][0]["properties"]["source"];
-					var year = result["features"][0]["properties"]["year"];
-					var elevation = result["features"][0]["properties"]["elevation"];
 
-					$(element).popover({
-						'placement': 'top',
-						'html': true,
-						//Dynamically Generating the popup content
-						'content':
-							'<table border="1"><tbody><tr><th>Layer Name</th><th>Source</th><th>Year</th><th>Elevation</th></tr>'+
-							'<tr><td>'+lname+'</td><td>'+source+'</td><td>'+year+'</td><td>'+elevation+'</td></tr></tbody></table>'
+
+					// var lname = result["features"][0]["properties"]["layer_name"];
+					// var source = result["features"][0]["properties"]["source"];
+					// var year = result["features"][0]["properties"]["year"];
+					// var elevation = result["features"][0]["properties"]["elevation"];
+					var id = result["features"][0]["id"];
+					var data = {"id": id};
+					var xhr = ajax_update_database("popup-info", data);
+
+					xhr.done(function(return_data){
+						if("success" in return_data){
+
+							if(return_data['type'] == 'points'){
+								var lname = return_data["layer_name"];
+								var year = return_data["year"];
+								var source = return_data["source"];
+								var meta_dict = return_data["meta_dict"];
+								var file_text_html = '';
+								if(Object.keys(meta_dict).length>0){
+									$.each(meta_dict, function (key, val) {
+										if(key.indexOf('file') !== -1){
+											var get_req = '/apps/glo-vli/get-meta-file/?file='+val;
+											file_text_html += '<a href="'+get_req+'">'+val+'</a><br>'
+										}
+										if(key.indexOf('text') !== -1){
+											file_text_html += '<a href="'+val+'">'+val+'</a><br>'
+										}
+									});
+								}else{
+									file_text_html += 'No Links/Files';
+								}
+
+								popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Source</th><th>Year</th><th>Links/Files</th></tr>'+
+									'<tr><td>'+lname+'</td><td>'+source+'</td><td>'+year+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+							}else{
+								var lname = return_data["layer_name"];
+								var year = return_data["year"];
+								var source = return_data["source"];
+								popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Source</th><th>Year</th></tr>'+
+									'<tr><td>'+lname+'</td><td>'+source+'</td><td>'+year+'</td></tr></tbody></table>';
+							}
+						}else if("error" in return_data){
+							console.log(return_data["error"]);
+						}
+
+						// popup_content = generate_popup_content(id);
+						$(element).popover({
+							'placement': 'top',
+							'html': true,
+							//Dynamically Generating the popup content
+							'content': popup_content
+						});
+
+						$(element).popover('show');
+						$(element).next().css('cursor', 'text');
 					});
 
-					$(element).popover('show');
-					$(element).next().css('cursor', 'text');
+
 
 				},
 				error: function (XMLHttpRequest, textStatus, errorThrown) {

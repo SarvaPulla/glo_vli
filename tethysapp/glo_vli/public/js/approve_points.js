@@ -148,7 +148,7 @@ var LIBRARY_OBJECT = (function() {
         $('.view-point').off().click(function(){
             var parent_row = $(this).parent().parent().parent();
             var point_id = parent_row.find('.point-id').text();
-            console.log(point_id);
+
             map.removeLayer(wms_layer);
             var sld_string = '<StyledLayerDescriptor version="1.0.0"><NamedLayer><Name>glo_vli:points</Name><UserStyle><FeatureTypeStyle>\
                         <Rule>\
@@ -191,15 +191,15 @@ var LIBRARY_OBJECT = (function() {
 
             $("#meta-group").html('');
             //scroll back to top
-            // window.scrollTo(0,0);
-            //clear messages
-            // $('#message').addClass('hidden');
-            // $('#message').empty()
-            //     .addClass('hidden')
-            //     .removeClass('alert-success')
-            //     .removeClass('alert-info')
-            //     .removeClass('alert-warning')
-            //     .removeClass('alert-danger');
+            window.scrollTo(0,0);
+            // clear messages
+            $('#message').addClass('hidden');
+            $('#message').empty()
+                .addClass('hidden')
+                .removeClass('alert-success')
+                .removeClass('alert-info')
+                .removeClass('alert-warning')
+                .removeClass('alert-danger');
 
             //check data store input
             var safe_to_submit = {val: true, error:""};

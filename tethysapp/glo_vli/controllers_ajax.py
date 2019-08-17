@@ -8,11 +8,12 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 from sqlalchemy.exc import IntegrityError
 from .model import *
 from .app import GloVli
-from .utils import user_permission_test, process_meta_file, get_county_name
+from .utils import user_permission_test, process_meta_file, get_point_county_name, get_polygon_county_name
 import requests
 from shapely.geometry import shape
 import os
 import json
+from mimetypes import guess_type
 import geojson
 
 
@@ -32,13 +33,12 @@ def point_add(request):
         longitude = point.split(',')[0]
         latitude = point.split(',')[1]
 
-        county = get_county_name(longitude, latitude)
+        county = get_point_county_name(longitude, latitude)
 
         meta_dict = {}
 
         meta_text = info.get('meta_text')
         meta_file = info.get('meta_file')
-        print(meta_file, meta_text)
 
         if meta_text:
             meta_text = meta_text.split(',')
@@ -84,6 +84,8 @@ def point_update(request):
         point_source = post_info.get('point_source')
         point_elevation = post_info.get('point_elevation')
         point_approved = post_info.get('point_approved')
+
+        county = get_point_county_name(point_longitude, point_latitude)
 
         meta_text = post_info.get('meta_text')
         meta_file = post_info.get('meta_file')
@@ -132,6 +134,7 @@ def point_update(request):
             point.approved = eval(point_approved)
             point.geometry = 'SRID=4326;POINT({0} {1})'.format(point_longitude, point_latitude)
             point.meta_dict = meta_dict
+            point.county = county
 
             session.commit()
             session.close()
@@ -174,26 +177,52 @@ def point_delete(request):
 def polygon_add(request):
 
     response = {}
+    try:
+        if request.is_ajax() and request.method == 'POST':
+            info = request.POST
 
-    if request.is_ajax() and request.method == 'POST':
-        info = request.POST
+            year = info.get('year')
+            source = info.get('source')
+            layer = info.get('layer')
+            polygon = info.get('polygon')
+            polygon = geojson.loads(polygon)
+            geom = shape(polygon)
 
-        year = info.get('year')
-        source = info.get('source')
-        layer = info.get('layer')
-        polygon = info.get('polygon')
-        polygon = geojson.loads(polygon)
-        geom = shape(polygon)
+            county = get_polygon_county_name(geom.wkt)
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
-        point_obj = Polygons(layer_name=layer, year=year, source=source, approved=False, geometry=geom.wkt)
-        session.add(point_obj)
-        session.commit()
-        session.close()
+            meta_dict = {}
 
-        response = {"success": "success"}
+            meta_text = info.get('meta_text')
+            meta_file = info.get('meta_file')
 
+            if meta_text:
+                meta_text = meta_text.split(',')
+
+            if meta_file:
+                meta_file = meta_file.split(',')
+
+            if len(meta_text) > 0:
+                for txt in meta_text:
+                    meta_dict[txt] = info.get(txt)
+
+            if len(meta_file) > 0:
+                for file in meta_file:
+                    meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
+
+            Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+            session = Session()
+            point_obj = Polygons(layer_name=layer, year=year, source=source, county=county,
+                                 approved=False, geometry=geom.wkt, meta_dict=meta_dict)
+            session.add(point_obj)
+            session.commit()
+            session.close()
+
+            response = {"success": "success"}
+
+            return JsonResponse(response)
+    except Exception as e:
+
+        response = {"error": str(e)}
         return JsonResponse(response)
 
 
@@ -220,6 +249,29 @@ def polygon_update(request):
         except ValueError:
             return JsonResponse({'error': 'Polygon id is faulty.'})
 
+        meta_text = post_info.get('meta_text')
+        meta_file = post_info.get('meta_file')
+
+        meta_dict = {}
+
+        if meta_text:
+            meta_text = meta_text.split(',')
+
+        if meta_file:
+            meta_file = meta_file.split(',')
+
+        if len(meta_text) > 0:
+            for txt in meta_text:
+                meta_dict[txt] = post_info.get(txt)
+
+        if len(meta_file) > 0:
+            for file in meta_file:
+                f_result = post_info.get(file)
+                if f_result is not None:
+                    meta_dict[file] = f_result
+                else:
+                    meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
+
         Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
         session = Session()
 
@@ -228,6 +280,7 @@ def polygon_update(request):
             polygon.year = polygon_year
             polygon.source = polygon_source
             polygon.approved = eval(polygon_approved)
+            polygon.meta_dict = meta_dict
 
             session.commit()
             session.close()
@@ -264,4 +317,68 @@ def polygon_delete(request):
         except IntegrityError:
             session.close()
             return JsonResponse({'error': "There is a problem with your request."})
+
+
+def get_popup_info(request):
+    """
+    Controller for getting relevant data to populate the popup
+    """
+
+    post_info = request.POST
+
+    id = post_info.get("id")
+    primary_key = id.split('.')[1]
+    table = id.split('.')[0]
+
+    json_obj = {}
+
+    json_obj['type'] = table
+
+    try:
+        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+        session = Session()
+
+        if table == 'points':
+            info = session.query(Points).get(primary_key)
+            json_obj['county'] = info.county
+            json_obj['meta_dict'] = info.meta_dict
+            json_obj['layer_name'] = info.layer_name
+            json_obj['source'] = info.source
+            json_obj['year'] = info.year
+            json_obj['success'] = 'success'
+
+            for key, val in info.meta_dict.items():
+                if 'file' in key:
+                    app_workspace = app.get_app_workspace()
+                    f_path = os.path.join(app_workspace.path, val)
+                    print(f_path)
+
+        elif table == 'polygons':
+            info = session.query(Polygons).get(primary_key)
+            json_obj['county'] = info.county
+            json_obj['layer_name'] = info.layer_name
+            json_obj['source'] = info.source
+            json_obj['year'] = info.year
+            json_obj['success'] = 'success'
+
+    except Exception as e:
+
+        json_obj['error'] = str(e)
+
+    return JsonResponse(json_obj)
+
+
+def get_meta_file(request):
+
+    file = request.GET['file']
+
+    app_workspace = app.get_app_workspace()
+    f_path = os.path.join(app_workspace.path, file)
+
+    if os.path.exists(f_path):
+        with open(f_path, 'rb') as fh:
+            response = HttpResponse(fh.read(), content_type=guess_type(f_path)[0])
+            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(f_path)
+            return response
+    raise Http404
 

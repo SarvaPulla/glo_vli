@@ -5,13 +5,10 @@ from geoalchemy2 import Geometry, WKTElement
 from sqlalchemy import *
 from tethysapp.glo_vli.app import GloVli as app
 from tethysapp.glo_vli.model import Points, Polygons
-from geoserver.catalog import Catalog
-from owslib.wfs import WebFeatureService
-from owslib.etree import etree
-from owslib.fes import *
 import requests
 import json
-from .config import geoserver_rest_url, geoserver_wfs_url
+from shapely import wkt
+from .config import geoserver_wfs_url
 
 
 def user_permission_test(user):
@@ -100,7 +97,7 @@ def add_polygons():
                                     year = '2019'
                                     county = row.get('CNTY_NM')
                                     polygon = Polygons(layer_name=f_name, year=year, source=source,
-                                                       county=county, geometry=geometry, approved=True)
+                                                       county=county, geometry=geometry, approved=True, meta_dict={})
                                     session.add(polygon)
                                 if 'WTR' in f:
                                     source = row['SOURCE_CIT']
@@ -109,7 +106,7 @@ def add_polygons():
                                     county = row.get('CNTY_NM')
                                     f_name = 'WTR_AR'
                                     polygon = Polygons(layer_name=f_name, year=year, source=source,
-                                                       county=county, geometry=geometry, approved=True)
+                                                       county=county, geometry=geometry, approved=True, meta_dict={})
                                     session.add(polygon)
 
                             session.commit()
@@ -156,12 +153,24 @@ def get_counties_gdf():
     return counties_gdf
 
 
-def get_county_name(longitude, latitude):
+def get_point_county_name(longitude, latitude):
 
     counties_gdf = get_counties_gdf()
     pdf = pd.DataFrame({'Name': ['point'], 'Latitude': [float(latitude)], 'Longitude': [float(longitude)]})
     pgdf = gpd.GeoDataFrame(pdf, geometry=gpd.points_from_xy(pdf.Longitude, pdf.Latitude))
-    pointInPoly = gpd.sjoin(pgdf, counties_gdf, op='within')
-    county = pointInPoly.CNTY_NM[0]
+    point_in_poly = gpd.sjoin(pgdf, counties_gdf, op='within')
+    county = point_in_poly.CNTY_NM[0]
+
+    return county
+
+
+def get_polygon_county_name(geom):
+
+    counties_gdf = get_counties_gdf()
+    pdf = pd.DataFrame({'Name': ['polygon'], 'geometry': [geom]})
+    pdf['geometry'] = pdf['geometry'].apply(wkt.loads)
+    pgdf = gpd.GeoDataFrame(pdf, geometry='geometry')
+    poly_in_poly = gpd.sjoin(pgdf, counties_gdf, op='intersects')
+    county = poly_in_poly.CNTY_NM.values[0]
 
     return county
