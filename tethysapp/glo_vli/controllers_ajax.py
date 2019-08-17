@@ -14,6 +14,7 @@ from shapely.geometry import shape
 import os
 import json
 from mimetypes import guess_type
+from django.utils.encoding import smart_str
 import geojson
 
 
@@ -347,15 +348,10 @@ def get_popup_info(request):
             json_obj['year'] = info.year
             json_obj['success'] = 'success'
 
-            for key, val in info.meta_dict.items():
-                if 'file' in key:
-                    app_workspace = app.get_app_workspace()
-                    f_path = os.path.join(app_workspace.path, val)
-                    print(f_path)
-
         elif table == 'polygons':
             info = session.query(Polygons).get(primary_key)
             json_obj['county'] = info.county
+            json_obj['meta_dict'] = info.meta_dict
             json_obj['layer_name'] = info.layer_name
             json_obj['source'] = info.source
             json_obj['year'] = info.year
@@ -377,8 +373,9 @@ def get_meta_file(request):
 
     if os.path.exists(f_path):
         with open(f_path, 'rb') as fh:
-            response = HttpResponse(fh.read(), content_type=guess_type(f_path)[0])
-            response['Content-Disposition'] = 'inline; filename=' + os.path.basename(f_path)
+            response = HttpResponse(fh.read(), content_type='application/force-download')
+            response['Content-Disposition'] = 'attachment; filename=%s' % smart_str(file)
+            response['X-Sendfile'] = smart_str(f_path)
             return response
     raise Http404
 

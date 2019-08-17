@@ -1,7 +1,7 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from tethys_sdk.gizmos import Button, TextInput, SelectInput
-from .utils import user_permission_test, get_counties_options, add_polygons, add_points
+from .utils import user_permission_test, get_counties_options, add_polygons, add_points, get_legend_options
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -25,9 +25,12 @@ def home(request):
                                         # initial=counties_options[0],
                                         attributes={'id': 'select-county'})
 
+    legend_options = get_legend_options()
+
     context = {
         'select_counties_input': select_counties_input,
-        'geoserver_wms_url': geoserver_wms_url
+        'geoserver_wms_url': geoserver_wms_url,
+        'legend_options': legend_options
     }
 
     return render(request, 'glo_vli/home.html', context)
