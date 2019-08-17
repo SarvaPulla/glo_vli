@@ -10,11 +10,44 @@
         position: relative;
     }
 </style>
-<h3>Approve point</h3>
+<h3>Approve Polygons</h3>
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
 <div id="map" class="map"></div>
 <div id="mouse-position"></div>
-    <div id="approve_polygons_table" data-page="{{ initial_page }}" data-num_polygons="{{ num_polygons }}"></div>
+<div id="approve_polygons_table" data-page="{{ initial_page }}" data-num_polygons="{{ num_polygons }}"></div>
+<div id="metadata" style="display: none;" data-wms-url="{{geoserver_wms_url}}"></div>
+{% endblock %}
+
+{% block after_app_content %}
+<!-- Update Modal -->
+<form class="modal fade" id="update-modal" tabindex="-1" role="dialog" aria-labelledby="update-modal-label">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h5 class="modal-title" id="update-modal-label">Update Form</h5>
+            </div>
+            <div class="modal-body" >
+                {% gizmo id_input %}
+                {% gizmo layer_input %}
+                {% gizmo source_input %}
+                {% gizmo year_input %}
+                {% gizmo approved_input %}
+                {% gizmo select_meta_input %}
+                {% gizmo  add_meta_button %}
+                <br><br>
+                <div class="meta-group" id="meta-group" name="meta-group">
+
+                </div>
+
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success submit-update-polygon" data-dismiss="modal">Update Polygon</button>
+            </div>
+        </div>
+    </div>
+</form>
 {% endblock %}
 
 {% block scripts %}

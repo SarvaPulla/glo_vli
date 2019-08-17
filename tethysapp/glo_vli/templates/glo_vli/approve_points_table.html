@@ -13,6 +13,7 @@
         <th>Year</th>
         <th>Source</th>
         <th>Elevation</th>
+        <th>Metadata</th>
         <th>Approved</th>
         </thead>
         <tbody>
@@ -22,8 +23,8 @@
                 <span class="glyphicon glyphicon-sunglasses"></span> View </a>
             </div>
             </td>
-            <td class="table-button"><div class=" btn-group "><a name="submit-update-point" class="btn btn-warning submit-update-point" role="button">
-                <span class="glyphicon glyphicon-floppy-disk"></span> Update </a>
+            <td class="table-button"><div class=" btn-group "><a name="submit-update-form" class="btn btn-warning submit-update-form" role="button">
+                <span class="glyphicon glyphicon-floppy-disk"></span> Update Form </a>
             </div>
             </td>
             <td class="table-button"><div class=" btn-group "><a name="submit-delete-point" class="btn btn-danger submit-delete-point" role="button">
@@ -32,12 +33,14 @@
             </td>
             <td class="point-id">{{point.id}}</td>
             <td class="point-layer-name" >{{point.layer_name}}</td>
-            <td class="point-latitude" contenteditable>{{point.latitude}}</td>
-            <td class="point-longitude" contenteditable>{{point.longitude}}</td>
-            <td class="point-year" contenteditable>{{point.year}}</td>
-            <td class="point-source" contenteditable>{{point.source}}</td>
-            <td class="point-elevation" contenteditable>{{point.elevation}}</td>
-            <td class="point-approved" contenteditable>{{point.approved}}</td>
+<!--            contenteditable-->
+            <td class="point-latitude" >{{point.latitude}}</td>
+            <td class="point-longitude" >{{point.longitude}}</td>
+            <td class="point-year" >{{point.year}}</td>
+            <td class="point-source" >{{point.source}}</td>
+            <td class="point-elevation" >{{point.elevation}}</td>
+            <td class="point-meta">{{point.meta_dict}}</td>
+            <td class="point-approved" >{{point.approved}}</td>
         </tr>
         {% endfor %}
         </tbody>

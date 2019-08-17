@@ -64,6 +64,8 @@ var LIBRARY_OBJECT = (function() {
             $("#year-input").val('');
             $("#source-input").val('');
             $("#elevation-input").val('');
+            $("#meta-group").html('');
+            input_counter = 1;
             addSuccessMessage('Point Upload Complete!');
         }
     };
@@ -278,9 +280,39 @@ var LIBRARY_OBJECT = (function() {
         }else{
             reset_alert();
         }
-        var data = {"year": year, "source": source, "layer": layer, "elevation": elevation, "point": lon_lat};
 
-        var xhr = ajax_update_database("submit",data);
+        var data = new FormData();
+        var meta_text = [];
+        var meta_file = [];
+
+         var inputValues = $('#meta-group :input').map(function() {
+            var type = $(this).prop("type");
+            var id = $(this).prop("id");
+
+
+            if (type == "text") {
+                var link_text = $(this).val();
+                data.append(id, link_text);
+                meta_text.push(id);
+            }
+
+            else if (type == "file") {
+                var file_content = $(this)[0].files;
+                data.append(id, file_content[0]);
+                meta_file.push(id);
+            }
+        });
+
+
+        data.append("year", year);
+        data.append("source", source);
+        data.append("layer", layer);
+        data.append("elevation", elevation);
+        data.append("point", lon_lat);
+        data.append("meta_text", meta_text);
+        data.append("meta_file", meta_file);
+
+        var xhr = ajax_update_database_with_file("submit", data);
         xhr.done(function(return_data){
             if("success" in return_data){
                 reset_form(return_data);
@@ -289,23 +321,6 @@ var LIBRARY_OBJECT = (function() {
             }
         });
 
-        // var inputValues = $('#meta-group :input').map(function() {
-        //     var type = $(this).prop("type");
-        //     var id = $(this).prop("id");
-        //
-        //     // checked radios/checkboxes
-        //     if (type == "text") {
-        //         console.log(id);
-        //         console.log($(this).val());
-        //     }
-        //     // all other fields, except buttons
-        //     else if (type == "file") {
-        //         console.log(id);
-        //         console.log($(this).val());
-        //     }
-        // });
-
-
     };
 
     $("#submit-add-point").click(add_point);
@@ -313,8 +328,9 @@ var LIBRARY_OBJECT = (function() {
     add_meta_input = function(){
         var input_type = $("#select-meta option:selected").val();
         if(input_type == 'text'){
+            var input_id = 'meta_'+input_counter+'_'+input_type;
             $("#meta-group").append('<div class="input-group">\n' +
-                '<input type="text" class="form-control"  id="meta' + input_counter +'" placeholder="External Link" >' +
+                '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External Link" >' +
                 '<div class="input-group-btn">' +
                 '<button class="btn btn-default remove" type="submit">' +
                 '<i class="glyphicon glyphicon-remove"></i>' +
@@ -327,8 +343,9 @@ var LIBRARY_OBJECT = (function() {
             input_counter ++;
         }
         if(input_type == 'file'){
+            var input_id = 'meta_'+input_counter+'_'+input_type;
             $("#meta-group").append('<div class="input-group">\n' +
-                '<input type="file" class="form-control"  id="meta' + input_counter +'" placeholder="External File" >' +
+                '<input type="file" class="form-control"  id="' + input_id +'" placeholder="External File" >' +
                 '<div class="input-group-btn">' +
                 '<button class="btn btn-default remove" type="submit">' +
                 '<i class="glyphicon glyphicon-remove"></i>' +
@@ -351,6 +368,7 @@ var LIBRARY_OBJECT = (function() {
         init_map();
         init_events();
     };
+
     /************************************************************************
      *                        DEFINE PUBLIC INTERFACE
      *************************************************************************/

@@ -137,11 +137,28 @@
     -webkit-border-radius:5px;
     border-radius:5px;
   }
+  	.map-view-legend {
+		bottom: 85px;
+		left: 5px;
+		width: 250px;
+		max-height: 90%;
+		overflow-y: auto;
+		margin: 5px;
+		color:white;
+		background: #286090;
+		border: 1px #ddd solid;
+		z-index: 999;
+	}
+	.map-view-legend:hover{background-color:rgba(0, 60, 136, 0.7);!important;color: #fff9fb;}
 </style>
 
 <div id="map" class="map"></div>
 <div id="popup" class="popup"></div>
-
+<div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
+  {% for opt in legend_options%}
+  <img src="{{opt}}">
+  {% endfor %}
+</div>
 {% endblock %}
 
 {# Use the after_app_content block for modals #}

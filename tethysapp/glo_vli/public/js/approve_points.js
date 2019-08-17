@@ -17,10 +17,13 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                      MODULE LEVEL / GLOBAL VARIABLES
      *************************************************************************/
-    var layers,
+    var gs_wms_url,
+        input_counter,
+        layers,
         map,
         m_uploading_data,
         m_results_per_page,
+        $modalUpdate,
         public_interface,				// Object returned by the module
         wms_source,
         wms_layer;
@@ -32,7 +35,8 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                    PRIVATE FUNCTION DECLARATIONS
      *************************************************************************/
-    var clear_coords,
+    var add_meta_input,
+        clear_coords,
         displayResultsText,
         getTablePage,
         initializeTableFunctions,
@@ -71,11 +75,14 @@ var LIBRARY_OBJECT = (function() {
             $("#year-input").val('');
             $("#source-input").val('');
             $("#elevation-input").val('');
-            addSuccessMessage('Point Upload Complete!');
+            addSuccessMessage('Point Update Complete!');
         }
     };
 
     init_jquery_vars = function(){
+        var $meta_element = $("#metadata");
+        gs_wms_url = $meta_element.attr('data-wms-url');
+        $modalUpdate = $("#update-modal");
 
     };
 
@@ -95,8 +102,8 @@ var LIBRARY_OBJECT = (function() {
         });
 
         wms_source = new ol.source.ImageWMS({
-            url: 'http://hydropad.org:8181/geoserver/wms',
-            params: {'LAYERS': 'glo_vli:layers'},
+            url: gs_wms_url,
+            params: {'LAYERS': 'glo_vli:points'},
             serverType: 'geoserver',
             crossOrigin: 'Anonymous'
         });
@@ -141,7 +148,7 @@ var LIBRARY_OBJECT = (function() {
         $('.view-point').off().click(function(){
             var parent_row = $(this).parent().parent().parent();
             var point_id = parent_row.find('.point-id').text();
-            console.log(point_id);
+
             map.removeLayer(wms_layer);
             var sld_string = '<StyledLayerDescriptor version="1.0.0"><NamedLayer><Name>glo_vli:points</Name><UserStyle><FeatureTypeStyle>\
                         <Rule>\
@@ -162,7 +169,7 @@ var LIBRARY_OBJECT = (function() {
                         </NamedLayer>\
                         </StyledLayerDescriptor>';
             wms_source = new ol.source.ImageWMS({
-                url: 'http://hydropad.org:8181/geoserver/wms',
+                url: gs_wms_url,
                 params: {'LAYERS': 'glo_vli:points', 'SLD_BODY':sld_string,
                     'FeatureID': point_id},
                 serverType: 'geoserver',
@@ -179,10 +186,13 @@ var LIBRARY_OBJECT = (function() {
 
 
         //handle the submit update event
-        $('.submit-update-point').off().click(function(){
+        $('.submit-update-form').off().click(function(){
+            $modalUpdate.modal('show');
+
+            $("#meta-group").html('');
             //scroll back to top
             window.scrollTo(0,0);
-            //clear messages
+            // clear messages
             $('#message').addClass('hidden');
             $('#message').empty()
                 .addClass('hidden')
@@ -202,28 +212,115 @@ var LIBRARY_OBJECT = (function() {
             var point_source = checkTableCellInputWithError(parent_row.find('.point-source'),safe_to_submit);
             var point_elevation = checkTableCellInputWithError(parent_row.find('.point-elevation'),safe_to_submit);
             var point_approved = checkTableCellInputWithError(parent_row.find('.point-approved'),safe_to_submit);
+            var point_meta = checkTableCellInputWithError(parent_row.find('.point-meta'),safe_to_submit);
+            point_meta = point_meta.replace(/\'/g, "\"");
+            point_meta = JSON.parse(point_meta);
+            input_counter = Object.keys(point_meta).length + 1;
+
+            $("#id-input").val(point_id);
+            $("#lat-input").val(point_latitude);
+            $("#lon-input").val(point_longitude);
+            $("#layer-input").val(point_layer_name);
+            $("#source-input").val(point_source);
+            $("#elevation-input").val(point_elevation);
+            $("#year-input").val(point_year);
+            $("#approved-input").val(point_approved).change();
 
 
-            var data = {
-                point_id: point_id,
-                point_layer_name: point_layer_name,
-                point_latitude: point_latitude,
-                point_longitude: point_longitude,
-                point_year: point_year,
-                point_source: point_source,
-                point_elevation: point_elevation,
-                point_approved: point_approved
-            };
+            $.map(point_meta, function(key, val){
+                var input_id = val;
 
-            //update database
-            var xhr = submitRowData($(this), data, safe_to_submit);
-            if (xhr != null) {
-                xhr.done(function (data) {
-                    if ('success' in data) {
-                        addSuccessMessage("Point Update Success!");
+                if(val.indexOf('text') !== -1){
+                    $("#meta-group").append('<div class="input-group">\n' +
+                        '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External Link" value="'+key+'">' +
+                        '<div class="input-group-btn">' +
+                        '<button class="btn btn-default remove" type="submit">' +
+                        '<i class="glyphicon glyphicon-remove"></i>' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>');
+                    $('.remove').click(function() {
+                        $(this).parent().parent().remove();
+                    });
+                }
+                if(val.indexOf('file') !== -1){
+                    $("#meta-group").append('<div class="input-group">\n' +
+                        '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External File" value="'+key+'" readonly>' +
+                        '<div class="input-group-btn">' +
+                        '<button class="btn btn-default remove" type="submit">' +
+                        '<i class="glyphicon glyphicon-remove"></i>' +
+                        '</button>' +
+                        '</div>' +
+                        '</div>');
+                    $('.remove').click(function() {
+                        $(this).parent().parent().remove();
+                    });
+                }
+            });
+
+        });
+
+        $('.submit-update-point').off().click(function(){
+            var safe_to_submit = {val: true, error:""};
+            var point_id = $("#id-input").val();
+            var point_latitude = $("#lat-input").val();
+            var point_longitude = $("#lon-input").val();
+            var point_layer_name = $("#layer-input").val();
+            var point_source = $("#source-input").val();
+            var point_elevation = $("#elevation-input").val();
+            var point_year = $("#year-input").val();
+            var point_approved = $("#approved-input").val();
+
+            var data = new FormData();
+
+
+            data.append("point_id", point_id);
+            data.append("point_layer_name", point_layer_name);
+            data.append("point_latitude", point_latitude);
+            data.append("point_longitude", point_longitude);
+            data.append("point_year", point_year);
+            data.append("point_source", point_source);
+            data.append("point_elevation", point_elevation);
+            data.append("point_approved", point_approved);
+
+            var meta_text = [];
+            var meta_file = [];
+
+            var inputValues = $('#meta-group :input').map(function() {
+                var type = $(this).prop("type");
+                var id = $(this).prop("id");
+
+                if (id.indexOf("text") !== -1) {
+                    var link_text = $(this).val();
+                    data.append(id, link_text);
+                    meta_text.push(id);
+                }
+
+                else if (id.indexOf("file") !== -1) {
+                    if(type=="file"){
+                        var file_content = $(this)[0].files;
+                        data.append(id, file_content[0]);
+                        meta_file.push(id);
+                    }else{
+                        data.append(id, $(this).val());
+                        meta_file.push(id);
                     }
-                });
-            }
+
+                }
+            });
+
+            data.append("meta_text", meta_text)
+            data.append("meta_file", meta_file);
+
+            var xhr = ajax_update_database_with_file("submit", data);
+            xhr.done(function(return_data){
+                if("success" in return_data){
+                    // reset_form(return_data)
+                    addSuccessMessage("Point Update Successful!");
+                }else if("error" in return_data){
+                    addErrorMessage(return_data["error"]);
+                }
+            });
         });
 
         //handle the submit delete event
@@ -310,6 +407,44 @@ var LIBRARY_OBJECT = (function() {
             }
         });
     };
+
+    add_meta_input = function(){
+        var input_type = $("#select-meta option:selected").val();
+        if(input_type == 'text'){
+            var input_id = 'meta_'+input_counter+'_'+input_type;
+            $("#meta-group").append('<div class="input-group">\n' +
+                '<input type="text" class="form-control"  id="' + input_id +'" placeholder="External Link" >' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default remove" type="submit">' +
+                '<i class="glyphicon glyphicon-remove"></i>' +
+                '</button>' +
+                '</div>' +
+                '</div>');
+            $('.remove').click(function() {
+                $(this).parent().parent().remove();
+            });
+            input_counter ++;
+        }
+        if(input_type == 'file'){
+            var input_id = 'meta_'+input_counter+'_'+input_type;
+            $("#meta-group").append('<div class="input-group">\n' +
+                '<input type="file" class="form-control"  id="' + input_id +'" placeholder="External File" >' +
+                '<div class="input-group-btn">' +
+                '<button class="btn btn-default remove" type="submit">' +
+                '<i class="glyphicon glyphicon-remove"></i>' +
+                '</button>' +
+                '</div>' +
+                '</div>');
+            $('.remove').click(function() {
+                $(this).parent().parent().remove();
+            });
+            input_counter ++;
+        }
+
+
+    };
+
+    $("#submit-add-meta").click(add_meta_input);
 
     init_all = function(){
         init_jquery_vars();
