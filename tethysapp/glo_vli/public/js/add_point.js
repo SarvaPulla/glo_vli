@@ -248,7 +248,7 @@ var LIBRARY_OBJECT = (function() {
     };
 
     add_point = function(){
-        // reset_alert();
+        reset_alert();
         var year = $("#year-input").val();
         var layer = $("#select-layer option:selected").val();
         var source = $("#source-input").val();

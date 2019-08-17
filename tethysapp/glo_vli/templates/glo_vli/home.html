@@ -17,7 +17,7 @@
 <!--</div>-->
 <div class="external layerSwitcher"></div>
 <br>
-<div id="metadata" style="display: none;" data-wms-url="{{geoserver_wms_url}}"></div>
+<div id="metadata" style="display: none;" data-wms-url="{{geoserver_wms_url}}" data-layer-options="{{layer_options}}"></div>
 {% if user.is_superuser or user.is_staff %}
 {% url 'glo_vli:home' as home_url %}
 {% url 'glo_vli:add-point' as add_point_url %}
@@ -138,8 +138,8 @@
     border-radius:5px;
   }
   	.map-view-legend {
-		bottom: 85px;
-		left: 5px;
+		bottom: 25px;
+		left: 3px;
 		width: 250px;
 		max-height: 90%;
 		overflow-y: auto;
@@ -150,13 +150,16 @@
 		z-index: 999;
 	}
 	.map-view-legend:hover{background-color:rgba(0, 60, 136, 0.7);!important;color: #fff9fb;}
+  .ol-scale-line{
+    background: #286090;
+  }
 </style>
 
 <div id="map" class="map"></div>
 <div id="popup" class="popup"></div>
 <div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
   {% for opt in legend_options%}
-  <img src="{{opt}}">
+  <img src="{{opt.0}}" class="{{opt.1}}">
   {% endfor %}
 </div>
 {% endblock %}

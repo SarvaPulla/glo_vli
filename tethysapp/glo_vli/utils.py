@@ -41,7 +41,7 @@ def add_points():
                                     source = row.get('SOURCE')
                                     county = row.get('COUNTY')
                                     county = county.title()
-                                    table_name = 'LowWaterCrossings'
+                                    table_name = 'Low Water Crossings'
                                     point = Points(table_name, latitude, longitude, 2019, source, 10, county,
                                                    approved=True, meta_dict={})
                                     session.add(point)
@@ -54,7 +54,7 @@ def add_points():
                                     county = county.title()
                                     elevation = row.get('Original_E')
                                     year = row.get('Year')
-                                    table_name = 'HighWaterMarks'
+                                    table_name = 'High Water Marks'
                                     point = Points(table_name, latitude, longitude, year, source, elevation, county,
                                                    approved=True, meta_dict={})
                                     session.add(point)
@@ -91,7 +91,7 @@ def add_polygons():
                                 if 'FLD' in f:
                                     source = row['SOURCE_CIT']
                                     geometry = row['geom']
-                                    f_name = 'FLD_HAZ_AR'
+                                    f_name = 'FEMA 100 Yr Flood'
                                     year = '2019'
                                     county = row.get('CNTY_NM')
                                     polygon = Polygons(layer_name=f_name, year=year, source=source,
@@ -102,7 +102,7 @@ def add_polygons():
                                     geometry = row['geom']
                                     year = '2019'
                                     county = row.get('CNTY_NM')
-                                    f_name = 'WTR_AR'
+                                    f_name = 'Surface Water'
                                     polygon = Polygons(layer_name=f_name, year=year, source=source,
                                                        county=county, geometry=geometry, approved=True, meta_dict={})
                                     session.add(polygon)
@@ -146,7 +146,7 @@ def get_counties_gdf():
                                           'typeNames=glo_vli:TexasCounties&outputFormat=application/json'
 
     counties_gdf = gpd.read_file(wfs_request_url)
-    counties_gdf = counties_gdf.to_crs({'init': 'epsg:4326'})
+    counties_gdf.crs = {'init': 'epsg:4326'}
 
     return counties_gdf
 
@@ -156,6 +156,7 @@ def get_point_county_name(longitude, latitude):
     counties_gdf = get_counties_gdf()
     pdf = pd.DataFrame({'Name': ['point'], 'Latitude': [float(latitude)], 'Longitude': [float(longitude)]})
     pgdf = gpd.GeoDataFrame(pdf, geometry=gpd.points_from_xy(pdf.Longitude, pdf.Latitude))
+    pgdf.crs = {'init': 'epsg:4326'}
     point_in_poly = gpd.sjoin(pgdf, counties_gdf, op='within')
     county = point_in_poly.CNTY_NM[0]
 
@@ -168,22 +169,45 @@ def get_polygon_county_name(geom):
     pdf = pd.DataFrame({'Name': ['polygon'], 'geometry': [geom]})
     pdf['geometry'] = pdf['geometry'].apply(wkt.loads)
     pgdf = gpd.GeoDataFrame(pdf, geometry='geometry')
+    pgdf.crs = {'init': 'epsg:4326'}
     poly_in_poly = gpd.sjoin(pgdf, counties_gdf, op='intersects')
     county = poly_in_poly.CNTY_NM.values[0]
 
     return county
 
 
+def get_layer_options():
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    point_layers = [layer[0] for layer in session.query(Points.layer_name).distinct()]
+
+    polygon_layers = [layer[0] for layer in session.query(Polygons.layer_name).distinct()]
+
+    layer_options = {}
+
+    layer_options["polygons"] = polygon_layers
+    layer_options["points"] = point_layers
+
+    session.close()
+
+    return layer_options
+
+
 def get_legend_options():
 
+    legend_options = []
+
     common_req_str = "?REQUEST=GetLegendGraphic&VERSION=1.0.0&FORMAT=image/png&" \
-                     "WIDTH=20&HEIGHT=20&LEGEND_OPTIONS=forceLabels:on"
+                     "WIDTH=20&HEIGHT=20&LEGEND_OPTIONS=forceLabels:on;"
 
-    lwx_layer = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:points"
-    hwm_layer = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:points&STYLE=glo_vli:star"
-    fld_haz_layer = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:polygons&STYLE=glo_vli:floodhaz"
-    fld_zone_layer = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:polygons&STYLE=glo_vli:floodzone"
+    options = get_layer_options()
 
-    legend_options = [lwx_layer, hwm_layer, fld_haz_layer, fld_zone_layer]
+    for type, layers in options.items():
+        for layer in layers:
+            style = layer.replace(" ", "_").lower()
+            legend_url = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:" + type + "&STYLE=" + style
+            legend_options.append((legend_url, style))
 
     return legend_options

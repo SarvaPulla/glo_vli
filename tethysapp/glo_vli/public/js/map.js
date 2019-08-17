@@ -24,11 +24,11 @@ var LIBRARY_OBJECT = (function() {
         gs_wms_url,
         layers,
         layersDict,
+        layer_options,
         map,
         popup,
         popup_content,
         public_interface,				// Object returned by the module
-        vli_layers,
         wms_layer,
         wms_source;
 
@@ -39,7 +39,6 @@ var LIBRARY_OBJECT = (function() {
      *************************************************************************/
     var add_vli_layers,
         get_popup,
-        generate_popup_content,
         init_events,
         init_jquery_vars,
         init_all,
@@ -50,9 +49,11 @@ var LIBRARY_OBJECT = (function() {
      *************************************************************************/
 
     init_jquery_vars = function(){
-        vli_layers = ['FLD_HAZ_AR', 'WTR_AR','HighWaterMarks', 'LowWaterCrossings'];
+
         var $meta_element = $("#metadata");
         gs_wms_url = $meta_element.attr('data-wms-url');
+        layer_options = $meta_element.attr('data-layer-options');
+        layer_options = JSON.parse(layer_options);
     };
 
     init_map = function(){
@@ -159,6 +160,8 @@ var LIBRARY_OBJECT = (function() {
             });
 
         map.addControl(switcher);
+
+
     };
 
     get_popup = function(evt){
@@ -302,73 +305,35 @@ var LIBRARY_OBJECT = (function() {
 
 
     add_vli_layers = function(){
-        vli_layers.forEach(function(i, val){
-            if( i == 'FLD_HAZ_AR'|| i == 'WTR_AR' ){
-                var lyr_name = vli_layers[val];
+        $.each(layer_options, function(lyr_key, lyrs){
+            lyrs.forEach(function(lyr, i){
+                var gs_layer = 'glo_vli:' + lyr_key;
+                var cql_str = 'layer_name=' + '\'' + lyr + '\' AND approved=True';
+                var style = lyr.replace(/ /g,"_").toLowerCase();
 
-                var cql_str = 'layer_name=' + '\'' + lyr_name + '\' AND approved=True';
-                if(i == 'FLD_HAZ_AR'){
-                	var style = 'glo_vli:floodhaz';
-                }else{
-                	var style= 'glo_vli:floodzone';
-                }
-
-                // addContextMenuToListItem($list_item);
                 wms_source = new ol.source.ImageWMS({
                     url: gs_wms_url,
                     params: {
-                        'LAYERS': 'glo_vli:polygons',
+                        'LAYERS': gs_layer,
                         'CQL_FILTER': cql_str,
                         'STYLES': style
                     },
                     serverType: 'geoserver',
                     crossOrigin: 'Anonymous'
                 });
-                // 'CQL_FILTER': 'layer_name=\'HighWaterMarks_Int\''
+
                 wms_layer = new ol.layer.Image({
                     source: wms_source,
-                    name:lyr_name,
+                    name:lyr,
                     visible:true,
-                    title: lyr_name
+                    title: lyr
                 });
                 map.addLayer(wms_layer);
 
-                layersDict[lyr_name] = wms_layer;
-            }
-            else
-            {
-                var lyr_name = vli_layers[val];
-                if(i == 'LowWaterCrossings'){
-                	var style = 'point';
-                }else{
-                	var style= 'glo_vli:star';
-                }
-
-                var cql_str = 'layer_name=' + '\'' + lyr_name + '\' AND approved=True';
-
-                // addContextMenuToListItem($list_item);
-                wms_source = new ol.source.ImageWMS({
-                    url: gs_wms_url,
-                    params: {
-                        'LAYERS': 'glo_vli:points',
-                        'CQL_FILTER': cql_str,
-                        'STYLES': style
-                    },
-                    serverType: 'geoserver',
-                    crossOrigin: 'Anonymous'
-                });
-                // 'CQL_FILTER': 'layer_name=\'HighWaterMarks_Int\''
-                wms_layer = new ol.layer.Image({
-                    source: wms_source,
-                    name:lyr_name,
-                    visible:true,
-                    title: lyr_name
-                });
-                map.addLayer(wms_layer);
-
-                layersDict[lyr_name] = wms_layer;
-            }
+                layersDict[lyr] = wms_layer;
+            });
         });
+
     };
 
 
@@ -436,6 +401,18 @@ var LIBRARY_OBJECT = (function() {
             }
 
         });
+
+        $.each(layersDict, function(key, val){
+           val.on('change:visible', function(e){
+                var legend_class = key.replace(/ /g,"_").toLowerCase();
+                if(val.getVisible()){
+                    $('.'+legend_class).removeClass('hidden');
+                }else{
+                    $('.'+legend_class).addClass('hidden');
+                }
+           });
+        });
+
     });
 
     return public_interface;

@@ -1,7 +1,8 @@
 from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from tethys_sdk.gizmos import Button, TextInput, SelectInput
-from .utils import user_permission_test, get_counties_options, add_polygons, add_points, get_legend_options
+from .utils import user_permission_test, get_counties_options, \
+    add_polygons, add_points, get_legend_options, get_layer_options
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -25,12 +26,15 @@ def home(request):
                                         # initial=counties_options[0],
                                         attributes={'id': 'select-county'})
 
+    layer_options = get_layer_options()
+
     legend_options = get_legend_options()
 
     context = {
         'select_counties_input': select_counties_input,
         'geoserver_wms_url': geoserver_wms_url,
-        'legend_options': legend_options
+        'legend_options': legend_options,
+        'layer_options': json.dumps(layer_options)
     }
 
     return render(request, 'glo_vli/home.html', context)
@@ -44,13 +48,16 @@ def add_point(request):
                               placeholder='e.g.: 30.5, -90.3',
                               attributes={'id': 'lon-lat-input', 'readonly': 'true'},)
 
+    layer_options = get_layer_options()
+    points = layer_options["points"]
+    point_layers = [(layer, layer) for layer in points]
+
     select_layer_input = SelectInput(display_text='Select Layer',
                                      name='select-layer',
                                      multiple=False,
                                      original=True,
-                                     options=[('LowWaterCrossings', 'LowWaterCrossings'),
-                                              ('HighWaterMarks', 'HighWaterMarks')],
-                                     initial=['LowWaterCrossings_Int'])
+                                     options=point_layers,
+                                     initial=point_layers[0])
 
     year_input = TextInput(display_text='Year',
                            name='year-input',
@@ -107,6 +114,7 @@ def approve_points(request):
     # initialize session
     Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
     session = Session()
+
     num_points = session.query(Points).filter_by(approved=False).count()
     session.close()
 

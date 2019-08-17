@@ -129,7 +129,6 @@ def point_update(request):
 
         point = session.query(Points).get(point_id)
         try:
-
             point.latitude = point_latitude
             point.longitude = point_longitude
             point.year = point_year
