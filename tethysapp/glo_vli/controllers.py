@@ -382,3 +382,36 @@ def approve_polygons_table(request):
     session.close()
 
     return render(request, 'glo_vli/approve_polygons_table.html', context)
+
+
+@user_passes_test(user_permission_test)
+def add_new_layer(request):
+    """
+    Controller for the upload layer page.
+    """
+
+    layer_input = TextInput(display_text='Layer Name',
+                            name='layer-input',
+                            placeholder='e.g.: Hospitals',
+                            attributes={'id': 'layer-input'})
+
+    attributes_button = Button(display_text='Get Shapefile Attributes',
+                               icon='glyphicon glyphicon-plus',
+                               style='primary',
+                               name='submit-get-attributes',
+                               attributes={'id': 'submit-get-attributes'}, )
+
+    add_button = Button(display_text='Add Layer',
+                        icon='glyphicon glyphicon-plus',
+                        style='primary',
+                        name='submit-add-layer',
+                        attributes={'id': 'submit-add-layer'},
+                        classes="hidden add")
+
+    context = {
+        'layer_input': layer_input,
+        'attributes_button': attributes_button,
+        'add_button': add_button
+    }
+
+    return render(request, 'glo_vli/add_new_layer.html', context)

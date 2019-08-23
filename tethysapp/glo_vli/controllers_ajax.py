@@ -8,7 +8,9 @@ from sqlalchemy.orm.exc import ObjectDeletedError
 from sqlalchemy.exc import IntegrityError
 from .model import *
 from .app import GloVli
-from .utils import user_permission_test, process_meta_file, get_point_county_name, get_polygon_county_name
+from .utils import user_permission_test, process_meta_file, \
+    get_point_county_name, get_polygon_county_name, process_shapefile, \
+    get_shapefile_attributes
 import requests
 from shapely.geometry import shape
 import os
@@ -379,4 +381,47 @@ def get_meta_file(request):
             response['X-Sendfile'] = smart_str(f_path)
             return response
     raise Http404
+
+
+@user_passes_test(user_permission_test)
+def get_shp_attributes(request):
+
+    response = {}
+
+    if request.is_ajax() and request.method == 'POST':
+        info = request.POST
+
+        layer_name = info.get('layer')
+
+        shapefile = request.FILES.getlist('shapefile')
+
+        attributes = get_shapefile_attributes(shapefile)
+
+        response = {"success": "success",
+                    "attributes": attributes}
+
+        return JsonResponse(response)
+
+
+@user_passes_test(user_permission_test)
+def new_layer_add(request):
+
+    response = {}
+
+    if request.is_ajax() and request.method == 'POST':
+        info = request.POST
+
+        layer_name = info.get('layer')
+
+        shapefile = request.FILES.getlist('shapefile')
+
+        attributes = info.get('attributes')
+
+        attributes = attributes.split(',')
+
+        process_shapefile(shapefile, layer_name, attributes)
+
+        response = {"success": "success"}
+
+        return JsonResponse(response)
 

@@ -94,6 +94,21 @@ class GloVli(TethysAppBase):
                 name='delete-polygons-ajax',
                 url='glo-vli/approve-polygons/delete',
                 controller='glo_vli.controllers_ajax.polygon_delete'),
+            UrlMap(
+                name='add-new-layer',
+                url='glo-vli/add-new-layer',
+                controller='glo_vli.controllers.add_new_layer'
+            ),
+            UrlMap(
+                name='get-new-layer-attributes',
+                url='glo-vli/add-new-layer/get-attributes',
+                controller='glo_vli.controllers_ajax.get_shp_attributes'
+            ),
+            UrlMap(
+                name='add-new-layer-ajax',
+                url='glo-vli/add-new-layer/submit',
+                controller='glo_vli.controllers_ajax.new_layer_add'
+            ),
         )
 
         return url_maps

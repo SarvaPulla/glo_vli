@@ -8,6 +8,10 @@ from tethysapp.glo_vli.model import Points, Polygons
 import requests
 import json
 from shapely import wkt
+from shapely.geometry import Point, Polygon, MultiPolygon
+import tempfile
+import shutil
+from django.http import JsonResponse
 from .config import geoserver_wfs_url, geoserver_wms_url, data_dir
 
 
@@ -211,3 +215,86 @@ def get_legend_options():
             legend_options.append((legend_url, style))
 
     return legend_options
+
+
+def get_shapefile_attributes(shapefile):
+
+    temp_dir = tempfile.mkdtemp()
+    gbyos_pol_shp = None
+
+    try:
+
+        for f in shapefile:
+            f_name = f.name
+            f_path = os.path.join(temp_dir, f_name)
+
+            with open(f_path, 'wb') as f_local:
+                f_local.write(f.read())
+
+        for file in os.listdir(temp_dir):
+            # Reading the shapefile only
+            if file.endswith(".shp"):
+                f_path = os.path.join(temp_dir, file)
+                gbyos_pol_shp = f_path
+
+        gdf = gpd.read_file(gbyos_pol_shp)
+        gdf = gdf.to_crs({'init': 'epsg:4326'})
+        attributes = gdf.columns.values.tolist()
+        attributes = attributes[:-1]
+        return attributes
+
+    except Exception as e:
+        if temp_dir is not None:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+        return JsonResponse({"error": e})
+    finally:
+        # Delete the temporary directory once the shapefile is processed
+        if temp_dir is not None:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+
+
+def process_shapefile(shapefile, layer_name, attributes):
+
+    temp_dir = tempfile.mkdtemp()
+    gbyos_pol_shp = None
+    counties_gdf = get_counties_gdf()
+
+    try:
+
+        for f in shapefile:
+            f_name = f.name
+            f_path = os.path.join(temp_dir, f_name)
+
+            with open(f_path, 'wb') as f_local:
+                f_local.write(f.read())
+
+        for file in os.listdir(temp_dir):
+            # Reading the shapefile only
+            if file.endswith(".shp"):
+                f_path = os.path.join(temp_dir, file)
+                gbyos_pol_shp = f_path
+
+        gdf = gpd.read_file(gbyos_pol_shp)
+        gdf = gdf.to_crs({'init': 'epsg:4326'})
+
+        c_join = gpd.sjoin(gdf, counties_gdf)
+
+        c_join = c_join[attributes + ['CNTY_NM', 'geometry']]
+        # c_join = c_join[COLUMNS]
+        print(type(c_join))
+        for index, row in c_join.iterrows():
+            if type(row.geometry) == Point:
+                print(index, row)
+
+    except Exception as e:
+        if temp_dir is not None:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
+        return JsonResponse({"error": e})
+    finally:
+        # Delete the temporary directory once the shapefile is processed
+        if temp_dir is not None:
+            if os.path.exists(temp_dir):
+                shutil.rmtree(temp_dir)
