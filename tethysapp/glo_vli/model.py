@@ -21,15 +21,13 @@ class Points(Base):
     layer_name = Column(String)
     latitude = Column(Float)
     longitude = Column(Float)
-    year = Column(String)
-    source = Column(String)
-    elevation = Column(Float)
     county = Column(String)
     approved = Column(Boolean)
     meta_dict = Column(JSON)
+    attr_dict = Column(JSON)
     geometry = Column(Geometry('POINT', srid=4326))
 
-    def __init__(self, layer_name, latitude, longitude, year, source, elevation, county, approved, meta_dict):
+    def __init__(self, layer_name, latitude, longitude, county, approved, attr_dict, meta_dict):
         """
         Constructor for a gage
         """
@@ -37,12 +35,10 @@ class Points(Base):
         self.layer_name = layer_name
         self.latitude = latitude
         self.longitude = longitude
-        self.year = year
-        self.source = source
-        self.elevation = elevation
         self.county = county
         self.approved = approved
         self.meta_dict = meta_dict
+        self.attr_dict = attr_dict
         self.geometry = 'SRID=4326;POINT({0} {1})'.format(longitude, latitude)
 
 
@@ -56,23 +52,21 @@ class Polygons(Base):
     # Columns
     id = Column(Integer, primary_key=True)
     layer_name = Column(String)
-    year = Column(String)
-    source = Column(String)
     county = Column(String)
     approved = Column(Boolean)
     meta_dict = Column(JSON)
+    attr_dict = Column(JSON)
     geometry = Column(Geometry('GEOMETRY', srid=4326))
 
-    def __init__(self, layer_name, year, source, county, approved, geometry, meta_dict):
+    def __init__(self, layer_name, county, approved, geometry, attr_dict, meta_dict):
         """
         Constructor for a gage
         """
 
         self.layer_name = layer_name
-        self.year = year
-        self.source = source
         self.county = county
         self.approved = approved
+        self.attr_dict = attr_dict
         self.meta_dict = meta_dict
         self.geometry = 'SRID=4326;{0}'.format(geometry)
 

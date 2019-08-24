@@ -22,9 +22,6 @@ var LIBRARY_OBJECT = (function() {
         map,
         public_interface;				// Object returned by the module
 
-
-
-
     /************************************************************************
      *                    PRIVATE FUNCTION DECLARATIONS
      *************************************************************************/
@@ -61,8 +58,7 @@ var LIBRARY_OBJECT = (function() {
     reset_form = function(result){
         if("success" in result){
             $("#lon-lat-input").val('');
-            $("#year-input").val('');
-            $("#source-input").val('');
+            $("#attribute-input").val('');
             $("#elevation-input").val('');
             $("#meta-group").html('');
             input_counter = 1;
@@ -249,31 +245,10 @@ var LIBRARY_OBJECT = (function() {
 
     add_point = function(){
         reset_alert();
-        var year = $("#year-input").val();
         var layer = $("#select-layer option:selected").val();
-        var source = $("#source-input").val();
-        var elevation = $("#elevation-input").val();
         var lon_lat = $("#lon-lat-input").val();
+        var attributes = $("#attribute-input").val();
 
-        if(source == ""){
-            addErrorMessage("Source cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
-        if(year == ""){
-            addErrorMessage("Year cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
-
-        if(elevation == ""){
-            addErrorMessage("Elevation cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
         if(lon_lat == ""){
             addErrorMessage("Please select a point on the map!");
             return false;
@@ -285,7 +260,7 @@ var LIBRARY_OBJECT = (function() {
         var meta_text = [];
         var meta_file = [];
 
-         var inputValues = $('#meta-group :input').map(function() {
+        var inputValues = $('#meta-group :input').map(function() {
             var type = $(this).prop("type");
             var id = $(this).prop("id");
 
@@ -303,11 +278,8 @@ var LIBRARY_OBJECT = (function() {
             }
         });
 
-
-        data.append("year", year);
-        data.append("source", source);
-        data.append("layer", layer);
-        data.append("elevation", elevation);
+        data.append("layer_name", layer);
+        data.append("attributes", attributes);
         data.append("point", lon_lat);
         data.append("meta_text", meta_text);
         data.append("meta_file", meta_file);

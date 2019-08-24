@@ -71,11 +71,17 @@ var LIBRARY_OBJECT = (function() {
     //Reset the form when the request is made succesfully
     reset_form = function(result){
         if("success" in result){
-            $("#lon-lat-input").val('');
-            $("#year-input").val('');
-            $("#source-input").val('');
-            $("#elevation-input").val('');
+            $("#attribute-input").val('');
+            $("#lat-input").val('');
+            $("#lon-input").val('');
             addSuccessMessage('Point Update Complete!');
+        }
+        if("reset" in result){
+            $("#attribute-input").val('');
+            $("#lat-input").val('');
+            $("#lon-input").val('');
+            $("#id-input").val('');
+            $("#layer-input").val('');
         }
     };
 
@@ -208,9 +214,11 @@ var LIBRARY_OBJECT = (function() {
             var point_layer_name = checkTableCellInputWithError(parent_row.find('.point-layer-name'),safe_to_submit);
             var point_latitude = checkTableCellInputWithError(parent_row.find('.point-latitude'),safe_to_submit);
             var point_longitude = checkTableCellInputWithError(parent_row.find('.point-longitude'),safe_to_submit);
-            var point_year = checkTableCellInputWithError(parent_row.find('.point-year'),safe_to_submit);
-            var point_source = checkTableCellInputWithError(parent_row.find('.point-source'),safe_to_submit);
-            var point_elevation = checkTableCellInputWithError(parent_row.find('.point-elevation'),safe_to_submit);
+            var point_attribute = checkTableCellInputWithError(parent_row.find('.point-attribute'),safe_to_submit);
+            point_attribute = point_attribute.replace(/\'/g, "\"");
+            point_attribute = JSON.parse(point_attribute);
+            point_attribute = Object.keys(point_attribute).map( function(key){ return key+":"+point_attribute[key] }).join(",");
+
             var point_approved = checkTableCellInputWithError(parent_row.find('.point-approved'),safe_to_submit);
             var point_meta = checkTableCellInputWithError(parent_row.find('.point-meta'),safe_to_submit);
             point_meta = point_meta.replace(/\'/g, "\"");
@@ -221,9 +229,7 @@ var LIBRARY_OBJECT = (function() {
             $("#lat-input").val(point_latitude);
             $("#lon-input").val(point_longitude);
             $("#layer-input").val(point_layer_name);
-            $("#source-input").val(point_source);
-            $("#elevation-input").val(point_elevation);
-            $("#year-input").val(point_year);
+            $("#attribute-input").val(point_attribute);
             $("#approved-input").val(point_approved).change();
 
 
@@ -266,9 +272,7 @@ var LIBRARY_OBJECT = (function() {
             var point_latitude = $("#lat-input").val();
             var point_longitude = $("#lon-input").val();
             var point_layer_name = $("#layer-input").val();
-            var point_source = $("#source-input").val();
-            var point_elevation = $("#elevation-input").val();
-            var point_year = $("#year-input").val();
+            var point_attribute = $("#attribute-input").val();
             var point_approved = $("#approved-input").val();
 
             var data = new FormData();
@@ -278,9 +282,7 @@ var LIBRARY_OBJECT = (function() {
             data.append("point_layer_name", point_layer_name);
             data.append("point_latitude", point_latitude);
             data.append("point_longitude", point_longitude);
-            data.append("point_year", point_year);
-            data.append("point_source", point_source);
-            data.append("point_elevation", point_elevation);
+            data.append("point_attribute", point_attribute);
             data.append("point_approved", point_approved);
 
             var meta_text = [];
@@ -309,7 +311,7 @@ var LIBRARY_OBJECT = (function() {
                 }
             });
 
-            data.append("meta_text", meta_text)
+            data.append("meta_text", meta_text);
             data.append("meta_file", meta_file);
 
             var xhr = ajax_update_database_with_file("submit", data);
@@ -445,6 +447,10 @@ var LIBRARY_OBJECT = (function() {
     };
 
     $("#submit-add-meta").click(add_meta_input);
+
+    $('#update-modal').on('hide.bs.modal', function () {
+        reset_form({"reset": "reset"});
+    });
 
     init_all = function(){
         init_jquery_vars();

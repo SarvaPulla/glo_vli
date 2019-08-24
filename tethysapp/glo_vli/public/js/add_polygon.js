@@ -63,8 +63,7 @@ var LIBRARY_OBJECT = (function() {
         if("success" in result){
             $("#polygon-input").val('');
             $("#year-input").val('');
-            $("#source-input").val('');
-            $("#elevation-input").val('');
+            $("#attribute-input").val('');
             $("#meta-group").html('');
             input_counter = 1;
             addSuccessMessage('Polygon Upload Complete!');
@@ -260,23 +259,10 @@ var LIBRARY_OBJECT = (function() {
 
     add_polygon = function(){
         reset_alert();
-        var year = $("#year-input").val();
-        var layer = $("#select-layer option:selected").val();
-        var source = $("#source-input").val();
-        var polygon = $("#polygon-input").val();
 
-        if(source == ""){
-            addErrorMessage("Source cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
-        if(year == ""){
-            addErrorMessage("Year cannot be empty!");
-            return false;
-        }else{
-            reset_alert();
-        }
+        var layer = $("#select-layer option:selected").val();
+        var attributes = $("#attribute-input").val();
+        var polygon = $("#polygon-input").val();
 
         if(polygon == ""){
             addErrorMessage("Please select a point on the map!");
@@ -307,9 +293,8 @@ var LIBRARY_OBJECT = (function() {
             }
         });
 
-        data.append("year", year);
-        data.append("source", source);
-        data.append("layer", layer);
+        data.append("layer", layer)
+        data.append("attributes", attributes);
         data.append("polygon", polygon);
         data.append("meta_text", meta_text);
         data.append("meta_file", meta_file);

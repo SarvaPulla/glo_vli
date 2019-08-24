@@ -28,10 +28,8 @@ def point_add(request):
         if request.is_ajax() and request.method == 'POST':
             info = request.POST
 
-            year = info.get('year')
-            source = info.get('source')
-            layer = info.get('layer')
-            elevation = info.get('elevation')
+            attributes = info.get('attributes')
+            layer_name = info.get('layer_name')
             point = info.get('point')
             longitude = point.split(',')[0]
             latitude = point.split(',')[1]
@@ -57,11 +55,18 @@ def point_add(request):
                 for file in meta_file:
                     meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
 
+            attr_dict = {}
+
+            if attributes:
+                attributes = attributes.split(',')
+                attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
+
             Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
             session = Session()
-            point_obj = Points(layer_name=layer, latitude=latitude, longitude=longitude, year=year,
-                               source=source, elevation=elevation, county=county, approved=False, meta_dict=meta_dict)
-            session.add(point_obj)
+            point = Points(layer_name=layer_name, latitude=latitude, longitude=longitude, county=county,
+                           approved=False, attr_dict=attr_dict, meta_dict=meta_dict)
+            session.add(point)
+
             session.commit()
             session.close()
 
@@ -86,9 +91,7 @@ def point_update(request):
         point_layer_name = post_info.get('point_layer_name')
         point_latitude = post_info.get('point_latitude')
         point_longitude = post_info.get('point_longitude')
-        point_year = post_info.get('point_year')
-        point_source = post_info.get('point_source')
-        point_elevation = post_info.get('point_elevation')
+        point_attribute = post_info.get('point_attribute')
         point_approved = post_info.get('point_approved')
 
         county = get_point_county_name(point_longitude, point_latitude)
@@ -116,9 +119,15 @@ def point_update(request):
                 else:
                     meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
 
+        attr_dict = {}
+
+        if point_attribute:
+            attributes = point_attribute.split(',')
+            attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
+
         # check data
         if not point_id or not point_layer_name or not point_approved or not \
-                point_latitude or not point_longitude or not point_year or not point_source:
+                point_latitude or not point_longitude:
             return JsonResponse({'error': "Missing input data."})
         # make sure id is id
         try:
@@ -133,9 +142,7 @@ def point_update(request):
         try:
             point.latitude = point_latitude
             point.longitude = point_longitude
-            point.year = point_year
-            point.source = point_source
-            point.elevation = point_elevation
+            point.attr_dict = attr_dict
             point.approved = eval(point_approved)
             point.geometry = 'SRID=4326;POINT({0} {1})'.format(point_longitude, point_latitude)
             point.meta_dict = meta_dict
@@ -185,8 +192,7 @@ def polygon_add(request):
         if request.is_ajax() and request.method == 'POST':
             info = request.POST
 
-            year = info.get('year')
-            source = info.get('source')
+            attributes = info.get('attributes')
             layer = info.get('layer')
             polygon = info.get('polygon')
             polygon = geojson.loads(polygon)
@@ -213,11 +219,17 @@ def polygon_add(request):
                 for file in meta_file:
                     meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
 
+            attr_dict = {}
+
+            if attributes:
+                attributes = attributes.split(',')
+                attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
+
             Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
             session = Session()
-            point_obj = Polygons(layer_name=layer, year=year, source=source, county=county,
-                                 approved=False, geometry=geom.wkt, meta_dict=meta_dict)
-            session.add(point_obj)
+            polygon = Polygons(layer_name=layer, county=county, attr_dict=attr_dict,
+                               approved=False, geometry=geom.wkt, meta_dict=meta_dict)
+            session.add(polygon)
             session.commit()
             session.close()
 
@@ -239,13 +251,11 @@ def polygon_update(request):
         # get/check information from AJAX request
         post_info = request.POST
         polygon_id = post_info.get('polygon_id')
-        polygon_year = post_info.get('polygon_year')
-        polygon_source = post_info.get('polygon_source')
         polygon_approved = post_info.get('polygon_approved')
+        polygon_attribute = post_info.get('polygon_attribute')
 
         # check data
-        if not polygon_id or not polygon_approved or not \
-                polygon_year or not polygon_source:
+        if not polygon_id or not polygon_approved:
             return JsonResponse({'error': "Missing input data."})
         # make sure id is id
         try:
@@ -276,15 +286,21 @@ def polygon_update(request):
                 else:
                     meta_dict[file] = process_meta_file(request.FILES.getlist(file)[0])
 
+        attr_dict = {}
+
+        if polygon_attribute:
+            attributes = polygon_attribute.split(',')
+            attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
+
         Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
         session = Session()
 
         polygon = session.query(Polygons).get(polygon_id)
         try:
-            polygon.year = polygon_year
-            polygon.source = polygon_source
+
             polygon.approved = eval(polygon_approved)
             polygon.meta_dict = meta_dict
+            polygon.attr_dict = attr_dict
 
             session.commit()
             session.close()
@@ -342,23 +358,18 @@ def get_popup_info(request):
         Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
         session = Session()
 
+        info = None
+
         if table == 'points':
             info = session.query(Points).get(primary_key)
-            json_obj['county'] = info.county
-            json_obj['meta_dict'] = info.meta_dict
-            json_obj['layer_name'] = info.layer_name
-            json_obj['source'] = info.source
-            json_obj['year'] = info.year
-            json_obj['success'] = 'success'
-
         elif table == 'polygons':
             info = session.query(Polygons).get(primary_key)
-            json_obj['county'] = info.county
-            json_obj['meta_dict'] = info.meta_dict
-            json_obj['layer_name'] = info.layer_name
-            json_obj['source'] = info.source
-            json_obj['year'] = info.year
-            json_obj['success'] = 'success'
+
+        json_obj['county'] = info.county
+        json_obj['meta_dict'] = info.meta_dict
+        json_obj['attr_dict'] = info.attr_dict
+        json_obj['layer_name'] = info.layer_name
+        json_obj['success'] = 'success'
 
     except Exception as e:
 
@@ -389,9 +400,6 @@ def get_shp_attributes(request):
     response = {}
 
     if request.is_ajax() and request.method == 'POST':
-        info = request.POST
-
-        layer_name = info.get('layer')
 
         shapefile = request.FILES.getlist('shapefile')
 
@@ -419,9 +427,7 @@ def new_layer_add(request):
 
         attributes = attributes.split(',')
 
-        process_shapefile(shapefile, layer_name, attributes)
-
-        response = {"success": "success"}
+        response = process_shapefile(shapefile, layer_name, attributes)
 
         return JsonResponse(response)
 

@@ -29,17 +29,19 @@
 <input type="text" name="point-lat-lon" id="point-lat-lon" hidden>
 {% gizmo lon_lat_input %}
 {% gizmo select_layer_input %}
-{% gizmo source_input %}
-{% gizmo year_input %}
-{% gizmo elevation_input %}
+{% gizmo  attribute_input %}
+<p><b>The attribute input should follow the following format attribute:value separated by a comma.</b></p>
 {% gizmo select_meta_input %}
 {% gizmo  add_meta_button %}
-<br><br>
+<div style="height: 1em;">
+
+</div>
 <form id='meta-group' name='meta-group' class='meta-group'>
 
 </form>
-<br>
-<br>
+<div style="height: 1em;">
+
+</div>
 {% gizmo  add_button %}
 {% endblock %}
 

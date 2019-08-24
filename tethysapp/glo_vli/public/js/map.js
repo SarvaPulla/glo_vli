@@ -165,6 +165,7 @@ var LIBRARY_OBJECT = (function() {
     };
 
     get_popup = function(evt){
+
         var clickCoord = evt.coordinate; //Get the coordinate of the clicked point
         popup.setPosition(clickCoord);
         // map.getLayers().item(1).getSource().clear();
@@ -186,58 +187,41 @@ var LIBRARY_OBJECT = (function() {
                     var xhr = ajax_update_database("popup-info", data);
 
                     xhr.done(function(return_data){
+
                         if("success" in return_data){
-
-                            if(return_data['type'] == 'points'){
-                                var lname = return_data["layer_name"];
-                                var year = return_data["year"];
-                                var source = return_data["source"];
-                                var meta_dict = return_data["meta_dict"];
-                                var file_text_html = '';
-                                if(Object.keys(meta_dict).length>0){
-                                    $.each(meta_dict, function (key, val) {
-                                        if(key.indexOf('file') !== -1){
-                                            var get_req = '/apps/glo-vli/get-meta-file/?file='+val;
-                                            file_text_html += '<a href="'+get_req+'">'+val+'</a><br>'
-                                        }
-                                        if(key.indexOf('text') !== -1){
-                                            file_text_html += '<a href="'+val+'" target="_blank">'+val+'</a><br>'
-                                        }
-                                    });
-                                }else{
-                                    file_text_html += 'No Links/Files';
-                                }
-
-                                popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Source</th><th>Year</th><th>Links/Files</th></tr>'+
-                                    '<tr><td>'+lname+'</td><td>'+source+'</td><td>'+year+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+                            var lname = return_data["layer_name"];
+                            var meta_dict = return_data["meta_dict"];
+                            var file_text_html = '';
+                            var attr_text_html = '';
+                            if(Object.keys(meta_dict).length>0){
+                                $.each(meta_dict, function (key, val) {
+                                    if(key.indexOf('file') !== -1){
+                                        var get_req = '/apps/glo-vli/get-meta-file/?file='+val;
+                                        file_text_html += '<a href="'+get_req+'">'+val+'</a><br>'
+                                    }
+                                    if(key.indexOf('text') !== -1){
+                                        file_text_html += '<a href="'+val+'" target="_blank">'+val+'</a><br>'
+                                    }
+                                });
                             }else{
-                                var lname = return_data["layer_name"];
-                                var year = return_data["year"];
-                                var source = return_data["source"];
-                                var meta_dict = return_data["meta_dict"];
-                                console.log(meta_dict);
-                                var file_text_html = '';
-                                if(Object.keys(meta_dict).length>0){
-                                    $.each(meta_dict, function (key, val) {
-                                        if(key.indexOf('file') !== -1){
-                                            var get_req = '/apps/glo-vli/get-meta-file/?file='+val;
-                                            file_text_html += '<a href="'+get_req+'">'+val+'</a><br>'
-                                        }
-                                        if(key.indexOf('text') !== -1){
-                                            file_text_html += '<a href="'+val+'" target="_blank">'+val+'</a><br>'
-                                        }
-                                    });
-                                }else{
-                                    file_text_html += 'No Links/Files';
-                                }
-                                popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Source</th><th>Year</th><th>Links/Files</th></tr>'+
-                                    '<tr><td>'+lname+'</td><td>'+source+'</td><td>'+year+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+                                file_text_html += 'No Links/Files';
                             }
+                            var attr_dict = return_data["attr_dict"];
+                            if(Object.keys(attr_dict).length>0){
+                                $.each(attr_dict, function (key, val) {
+                                    attr_text_html += '<p>'+key+':'+val+'</p><br>'
+                                });
+                            }else{
+                                attr_text_html += 'No Attributes';
+                            }
+                            popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Attributes</th><th>Links/Files</th></tr>'+
+                                '<tr><td>'+lname+'</td><td>'+attr_text_html+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+
                         }else if("error" in return_data){
                             console.log(return_data["error"]);
                         }
 
-                        // popup_content = generate_popup_content(id);
+
                         $(element).popover({
                             'placement': 'top',
                             'html': true,
@@ -286,7 +270,7 @@ var LIBRARY_OBJECT = (function() {
             }
             var pixel = map.getEventPixel(evt.originalEvent);
             var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-                if (layer != layers[0] && layer != layers[1] && layer != layers[2] && layer != layers[3]){
+                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3]){
                     current_layer = layer;
                     return true;
                 }
@@ -297,7 +281,7 @@ var LIBRARY_OBJECT = (function() {
         map.on('singleclick', function(evt) {
             $(element).popover('destroy');
 
-            if (map.getTargetElement().style.cursor == "pointer") {
+            if (map.getTargetElement().style.cursor === "pointer") {
                 get_popup(evt);
             }
         });
@@ -403,14 +387,15 @@ var LIBRARY_OBJECT = (function() {
         });
 
         $.each(layersDict, function(key, val){
-           val.on('change:visible', function(e){
+            val.on('change:visible', function(e){
                 var legend_class = key.replace(/ /g,"_").toLowerCase();
                 if(val.getVisible()){
                     $('.'+legend_class).removeClass('hidden');
                 }else{
                     $('.'+legend_class).addClass('hidden');
                 }
-           });
+
+            });
         });
 
     });

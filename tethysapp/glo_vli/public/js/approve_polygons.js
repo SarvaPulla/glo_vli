@@ -201,8 +201,12 @@ var LIBRARY_OBJECT = (function() {
             var parent_row = $(this).parent().parent().parent();
             var polygon_id = parent_row.find('.polygon-id').text();
             var polygon_layer_name = checkTableCellInputWithError(parent_row.find('.polygon-layer-name'),safe_to_submit);
-            var polygon_year = checkTableCellInputWithError(parent_row.find('.polygon-year'),safe_to_submit);
-            var polygon_source = checkTableCellInputWithError(parent_row.find('.polygon-source'),safe_to_submit);
+
+            var polygon_attribute = checkTableCellInputWithError(parent_row.find('.polygon-attribute'),safe_to_submit);
+            polygon_attribute = polygon_attribute.replace(/\'/g, "\"");
+            polygon_attribute = JSON.parse(polygon_attribute);
+            polygon_attribute = Object.keys(polygon_attribute).map( function(key){ return key+":"+polygon_attribute[key] }).join(",");
+
             var polygon_approved = checkTableCellInputWithError(parent_row.find('.polygon-approved'),safe_to_submit);
             var polygon_meta = checkTableCellInputWithError(parent_row.find('.polygon-meta'),safe_to_submit);
             polygon_meta = polygon_meta.replace(/\'/g, "\"");
@@ -211,8 +215,7 @@ var LIBRARY_OBJECT = (function() {
 
             $("#id-input").val(polygon_id);
             $("#layer-input").val(polygon_layer_name);
-            $("#source-input").val(polygon_source);
-            $("#year-input").val(polygon_year);
+            $("#attribute-input").val(polygon_attribute);
             $("#approved-input").val(polygon_approved).change();
 
             $.map(polygon_meta, function(key, val){
@@ -252,8 +255,7 @@ var LIBRARY_OBJECT = (function() {
             var safe_to_submit = {val: true, error:""};
             var polygon_id = $("#id-input").val();
             var polygon_layer_name = $("#layer-input").val();
-            var polygon_source = $("#source-input").val();
-            var polygon_year = $("#year-input").val();
+            var polygon_attribute = $("#attribute-input").val();
             var polygon_approved = $("#approved-input").val();
 
             var data = new FormData();
@@ -261,8 +263,7 @@ var LIBRARY_OBJECT = (function() {
 
             data.append("polygon_id", polygon_id);
             data.append("polygon_layer_name", polygon_layer_name);
-            data.append("polygon_year", polygon_year);
-            data.append("polygon_source", polygon_source);
+            data.append("polygon_attribute", polygon_attribute);
             data.append("polygon_approved", polygon_approved);
 
             var meta_text = [];

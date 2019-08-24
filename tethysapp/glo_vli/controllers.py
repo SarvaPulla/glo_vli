@@ -59,20 +59,10 @@ def add_point(request):
                                      options=point_layers,
                                      initial=point_layers[0])
 
-    year_input = TextInput(display_text='Year',
-                           name='year-input',
-                           placeholder='e.g.: 2019',
-                           attributes={'id': 'year-input'})
-
-    source_input = TextInput(display_text='Source',
-                             name='source-input',
-                             placeholder='e.g.: FIS',
-                             attributes={'id': 'source-input'})
-
-    elevation_input = TextInput(display_text='Elevation',
-                                name='elevation-input',
-                                placeholder='e.g.: 8',
-                                attributes={'id': 'elevation-input'})
+    attribute_input = TextInput(display_text='Attributes',
+                                name='attribute-input',
+                                placeholder='e.g.: YEAR:2019,SOURCE:GLO,....',
+                                attributes={'id': 'attribute-input'})
 
     add_button = Button(display_text='Add Point',
                         icon='glyphicon glyphicon-plus',
@@ -96,13 +86,10 @@ def add_point(request):
     context = {
         'lon_lat_input': lon_lat_input,
         'select_layer_input': select_layer_input,
-        'year_input': year_input,
-        'source_input': source_input,
-        'elevation_input': elevation_input,
+        'attribute_input': attribute_input,
         'add_meta_button': add_meta_button,
         'select_meta_input': select_meta_input,
         'add_button': add_button
-
     }
 
     return render(request, 'glo_vli/add_point.html', context)
@@ -138,21 +125,6 @@ def approve_points(request):
                           placeholder='e.g.: 30.5',
                           attributes={'id': 'lat-input'}, )
 
-    year_input = TextInput(display_text='Year',
-                           name='year-input',
-                           placeholder='e.g.: 2019',
-                           attributes={'id': 'year-input'})
-
-    source_input = TextInput(display_text='Source',
-                             name='source-input',
-                             placeholder='e.g.: FIS',
-                             attributes={'id': 'source-input'})
-
-    elevation_input = TextInput(display_text='Elevation',
-                                name='elevation-input',
-                                placeholder='e.g.: 8',
-                                attributes={'id': 'elevation-input'})
-
     approved_input = SelectInput(display_text='Approved',
                                  name='approved-input',
                                  attributes={'id': 'approved-input'},
@@ -174,6 +146,11 @@ def approve_points(request):
                                     options=[('External Link', 'text'),
                                              ('File', 'file')],)
 
+    attribute_input = TextInput(display_text='Attributes',
+                                name='attribute-input',
+                                placeholder='e.g.: YEAR:2019,SOURCE:GLO,....',
+                                attributes={'id': 'attribute-input'})
+
     context = {
         'num_points': num_points,
         'initial_page': 0,
@@ -181,11 +158,9 @@ def approve_points(request):
         'add_meta_button': add_meta_button,
         'id_input': id_input,
         'select_meta_input': select_meta_input,
+        'attribute_input': attribute_input,
         'lon_input': lon_input,
         'lat_input': lat_input,
-        'year_input': year_input,
-        'source_input': source_input,
-        'elevation_input': elevation_input,
         'layer_input': layer_input,
         'approved_input': approved_input
     }
@@ -235,22 +210,21 @@ def add_polygon(request):
                               placeholder='e.g.: Polygon',
                               attributes={'id': 'polygon-input', 'readonly': 'true'},)
 
+    layer_options = get_layer_options()
+    polygons = layer_options["polygons"]
+    polygon_layers = [(layer, layer) for layer in polygons]
+
     select_layer_input = SelectInput(display_text='Select Layer',
                                      name='select-layer',
                                      multiple=False,
                                      original=True,
-                                     options=[('WTR_AR', 'WTR_AR'), ('FLD_HAZ_AR', 'FLD_HAZ_AR')],
-                                     initial=['FLD_HAZ_AR'])
+                                     options=polygon_layers,
+                                     initial=polygon_layers[0])
 
-    year_input = TextInput(display_text='Year',
-                           name='year-input',
-                           placeholder='e.g.: 2019',
-                           attributes={'id': 'year-input'})
-
-    source_input = TextInput(display_text='Source',
-                             name='source-input',
-                             placeholder='e.g.: FIS',
-                             attributes={'id': 'source-input'})
+    attribute_input = TextInput(display_text='Attributes',
+                                name='attribute-input',
+                                placeholder='e.g.: YEAR:2019,SOURCE:GLO,....',
+                                attributes={'id': 'attribute-input'})
 
     add_button = Button(display_text='Add Polygon',
                         icon='glyphicon glyphicon-plus',
@@ -274,8 +248,7 @@ def add_polygon(request):
     context = {
         'polygon_input': polygon_input,
         'select_layer_input': select_layer_input,
-        'year_input': year_input,
-        'source_input': source_input,
+        'attribute_input': attribute_input,
         'add_button': add_button,
         'add_meta_button': add_meta_button,
         'select_meta_input': select_meta_input
@@ -303,16 +276,6 @@ def approve_polygons(request):
                             placeholder='',
                             attributes={'id': 'layer-input', 'readonly': 'true'})
 
-    year_input = TextInput(display_text='Year',
-                           name='year-input',
-                           placeholder='e.g.: 2019',
-                           attributes={'id': 'year-input'})
-
-    source_input = TextInput(display_text='Source',
-                             name='source-input',
-                             placeholder='e.g.: FIS',
-                             attributes={'id': 'source-input'})
-
     approved_input = SelectInput(display_text='Approved',
                                  name='approved-input',
                                  attributes={'id': 'approved-input'},
@@ -334,14 +297,18 @@ def approve_polygons(request):
                                     options=[('External Link', 'text'),
                                              ('File', 'file')],)
 
+    attribute_input = TextInput(display_text='Attributes',
+                                name='attribute-input',
+                                placeholder='e.g.: YEAR:2019,SOURCE:GLO,....',
+                                attributes={'id': 'attribute-input'})
+
     context = {
         'num_polygons': num_polygons,
         'initial_page': 0,
         'geoserver_wms_url': geoserver_wms_url,
         'id_input': id_input,
         'layer_input': layer_input,
-        'year_input': year_input,
-        'source_input': source_input,
+        'attribute_input': attribute_input,
         'approved_input': approved_input,
         'add_meta_button': add_meta_button,
         'select_meta_input': select_meta_input
@@ -390,10 +357,28 @@ def add_new_layer(request):
     Controller for the upload layer page.
     """
 
-    layer_input = TextInput(display_text='Layer Name',
-                            name='layer-input',
-                            placeholder='e.g.: Hospitals',
-                            attributes={'id': 'layer-input'})
+    add_new_select = SelectInput(display_text='Add New Layer',
+                                 name='add-new-select',
+                                 attributes={'id': 'add-new-select'},
+                                 multiple=False,
+                                 options=[('True', 'True'),
+                                          ('False', 'False')]
+                                 )
+
+    layer_text_input = TextInput(display_text='Layer Name',
+                                 name='layer-text-input',
+                                 placeholder='e.g.: Hospitals',
+                                 attributes={'id': 'layer-text-input'},
+                                 )
+
+    layer_options = get_layer_options()
+    layer_list = [(layer, layer) for key, val in layer_options.items() for layer in val]
+
+    layer_select_input = SelectInput(display_text='Select Layer',
+                                     name='layer-select-input',
+                                     multiple=False,
+                                     original=True,
+                                     options=layer_list,)
 
     attributes_button = Button(display_text='Get Shapefile Attributes',
                                icon='glyphicon glyphicon-plus',
@@ -409,7 +394,9 @@ def add_new_layer(request):
                         classes="hidden add")
 
     context = {
-        'layer_input': layer_input,
+        'add_new_select': add_new_select,
+        'layer_text_input': layer_text_input,
+        'layer_select_input': layer_select_input,
         'attributes_button': attributes_button,
         'add_button': add_button
     }

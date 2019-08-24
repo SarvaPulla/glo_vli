@@ -69,16 +69,17 @@ var LIBRARY_OBJECT = (function() {
 
     add_layer = function(){
         reset_alert();
-        var layer = $("#layer-input").val();
+        var layer;
+        var add_option = $("#add-new-select option:selected").val();
+
+        if(add_option=='True'){
+            layer = $("#layer-text-input").val();
+        }else{
+            layer =  $("#layer-select-input option:selected").val();
+        }
         var shapefiles = $("#shp-upload-input")[0].files;
         var attributes = $("#select_attributes").val();
-        console.log(attributes);
-        // if($shp_input.val() == ""){
-        //     addErrorMessage("Layer Shape File cannot be empty!");
-        //     return false;
-        // }else{
-        //     reset_alert();
-        // }
+
         if(layer == ""){
             addErrorMessage("Layer name cannot be empty!");
             return false;
@@ -109,6 +110,12 @@ var LIBRARY_OBJECT = (function() {
     get_shp_attributes = function(){
 
         var shapefiles = $("#shp-upload-input")[0].files;
+        if($shp_input.val() === ""){
+            addErrorMessage("Layer Shape File cannot be empty!");
+            return false;
+        }else{
+            reset_alert();
+        }
 
         addInfoMessage("Getting attributes. Please wait...","message");
         var data = new FormData();
@@ -164,6 +171,16 @@ var LIBRARY_OBJECT = (function() {
     // the DOM tree finishes loading
     $(function() {
         init_all();
+        $("#add-new-select").change(function(){
+            var add_option = $("#add-new-select option:selected").val();
+            if(add_option=='True'){
+                $('.layer_text').removeClass('hidden');
+                $('.layer_select').addClass('hidden');
+            }else{
+                $('.layer_text').addClass('hidden');
+                $('.layer_select').removeClass('hidden');
+            }
+        }).change();
     });
 
     return public_interface;

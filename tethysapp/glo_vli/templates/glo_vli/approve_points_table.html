@@ -10,9 +10,7 @@
         <th>Layer Name</th>
         <th>Latitude</th>
         <th>Longitude</th>
-        <th>Year</th>
-        <th>Source</th>
-        <th>Elevation</th>
+        <th>Attributes</th>
         <th>Metadata</th>
         <th>Approved</th>
         </thead>
@@ -36,9 +34,7 @@
 <!--            contenteditable-->
             <td class="point-latitude" >{{point.latitude}}</td>
             <td class="point-longitude" >{{point.longitude}}</td>
-            <td class="point-year" >{{point.year}}</td>
-            <td class="point-source" >{{point.source}}</td>
-            <td class="point-elevation" >{{point.elevation}}</td>
+            <td class="point-attribute" >{{point.attr_dict}}</td>
             <td class="point-meta">{{point.meta_dict}}</td>
             <td class="point-approved" >{{point.approved}}</td>
         </tr>

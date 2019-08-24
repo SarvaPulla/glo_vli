@@ -282,17 +282,37 @@ def process_shapefile(shapefile, layer_name, attributes):
         c_join = gpd.sjoin(gdf, counties_gdf)
 
         c_join = c_join[attributes + ['CNTY_NM', 'geometry']]
-        # c_join = c_join[COLUMNS]
-        print(type(c_join))
+
+        Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+        session = Session()
+
         for index, row in c_join.iterrows():
             if type(row.geometry) == Point:
-                print(index, row)
+                county = row.get('CNTY_NM')
+                latitude = row.geometry.y
+                longitude = row.geometry.x
+                attribute_info = {attr: row[attr] for attr in attributes}
+                point = Points(layer_name=layer_name, latitude=latitude, longitude=longitude, county=county,
+                               approved=True, attr_dict=attribute_info, meta_dict={})
+                session.add(point)
+            else:
+                county = row.get('CNTY_NM')
+                geometry = row.get('geometry')
+                attribute_info = {attr: row[attr] for attr in attributes}
+                polygon = Polygons(layer_name=layer_name, county=county, geometry=geometry,
+                                   approved=True, attr_dict=attribute_info, meta_dict={})
+                session.add(polygon)
+
+        session.commit()
+        session.close()
+
+        return {"success": "success"}
 
     except Exception as e:
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
-        return JsonResponse({"error": e})
+        return {"error": str(e)}
     finally:
         # Delete the temporary directory once the shapefile is processed
         if temp_dir is not None:
