@@ -60,6 +60,10 @@ class GloVli(TethysAppBase):
                 url='glo-vli/approve-points/table',
                 controller='glo_vli.controllers.approve_points_table'),
             UrlMap(
+                name='approve-points_tabulator',
+                url='glo-vli/approve-points/tabulator',
+                controller='glo_vli.controllers_ajax.tabulator'),
+            UrlMap(
                 name='update-points-ajax',
                 url='glo-vli/approve-points/submit',
                 controller='glo_vli.controllers_ajax.point_update'),

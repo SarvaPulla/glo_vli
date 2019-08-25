@@ -102,7 +102,7 @@ def approve_points(request):
     Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
     session = Session()
 
-    num_points = session.query(Points).filter_by(approved=False).count()
+    num_points = session.query(Points).count()
     session.close()
 
     id_input = TextInput(display_text='Feature ID',
@@ -129,8 +129,8 @@ def approve_points(request):
                                  name='approved-input',
                                  attributes={'id': 'approved-input'},
                                  multiple=False,
-                                 options=[('True', 'True'),
-                                          ('False', 'False')]
+                                 options=[('true', 'true'),
+                                          ('false', 'false')]
                                  )
 
     add_meta_button = Button(display_text='Add Metadata',
@@ -180,8 +180,8 @@ def approve_points_table(request):
 
     # Query DB for data store types
     points = session.query(Points) \
-                 .order_by(Points.id) \
-                 .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
+             .order_by(Points.id) \
+             [(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
 
     prev_button = Button(display_text='Previous',
                          name='prev_button',
@@ -263,7 +263,7 @@ def approve_polygons(request):
     # initialize session
     Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
     session = Session()
-    num_polygons = session.query(Polygons).filter_by(approved=False).count()
+    num_polygons = session.query(Polygons).count()
     session.close()
 
     id_input = TextInput(display_text='Feature ID',

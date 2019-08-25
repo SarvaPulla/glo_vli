@@ -18,6 +18,8 @@ import json
 from mimetypes import guess_type
 from django.utils.encoding import smart_str
 import geojson
+import math
+import ast
 
 
 @user_passes_test(user_permission_test)
@@ -93,6 +95,8 @@ def point_update(request):
         point_longitude = post_info.get('point_longitude')
         point_attribute = post_info.get('point_attribute')
         point_approved = post_info.get('point_approved')
+        point_approved = json.loads(point_approved)
+        print(point_approved)
 
         county = get_point_county_name(point_longitude, point_latitude)
 
@@ -126,7 +130,7 @@ def point_update(request):
             attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
 
         # check data
-        if not point_id or not point_layer_name or not point_approved or not \
+        if not point_id or not point_layer_name  or not \
                 point_latitude or not point_longitude:
             return JsonResponse({'error': "Missing input data."})
         # make sure id is id
@@ -143,7 +147,7 @@ def point_update(request):
             point.latitude = point_latitude
             point.longitude = point_longitude
             point.attr_dict = attr_dict
-            point.approved = eval(point_approved)
+            point.approved = point_approved
             point.geometry = 'SRID=4326;POINT({0} {1})'.format(point_longitude, point_latitude)
             point.meta_dict = meta_dict
             point.county = county
@@ -430,4 +434,45 @@ def new_layer_add(request):
         response = process_shapefile(shapefile, layer_name, attributes)
 
         return JsonResponse(response)
+
+
+@user_passes_test(user_permission_test)
+def tabulator(request):
+
+    json_obj = {}
+
+    info = request.GET
+
+    page = int(request.GET.get('page'))
+    page = page - 1
+    size = int(request.GET.get('size'))
+
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    # RESULTS_PER_PAGE = 10
+    num_points = session.query(Points).count()
+    last_page = math.ceil(int(num_points) / int(size))
+
+    # # Query DB for data store types
+    points = session.query(Points) \
+             .order_by(Points.id) \
+             [(page * size):((page+1) * size)]
+
+    data_dict = []
+
+    for point in points:
+        json_obj = {}
+        json_obj["id"] = point.id
+        json_obj["layer_name"] = point.layer_name
+        json_obj["latitude"] = point.latitude
+        json_obj["longitude"] = point.longitude
+        json_obj["county"] = point.county
+        json_obj["attributes"] = json.dumps(point.attr_dict)
+        json_obj["metadata"] = json.dumps(point.meta_dict)
+        json_obj["approved"] = point.approved
+        data_dict.append(json_obj)
+
+    response = {"data": data_dict, "last_page": last_page}
+
+    return JsonResponse(response)
 
