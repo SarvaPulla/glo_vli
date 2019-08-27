@@ -280,8 +280,8 @@ def approve_polygons(request):
                                  name='approved-input',
                                  attributes={'id': 'approved-input'},
                                  multiple=False,
-                                 options=[('True', 'True'),
-                                          ('False', 'False')]
+                                 options=[('true', 'true'),
+                                          ('false', 'false')]
                                  )
 
     add_meta_button = Button(display_text='Add Metadata',
@@ -402,3 +402,44 @@ def add_new_layer(request):
     }
 
     return render(request, 'glo_vli/add_new_layer.html', context)
+
+
+@user_passes_test(user_permission_test)
+def delete_layer(request):
+    """
+    Controller for the upload layer page.
+    """
+
+    layer_options = get_layer_options()
+    layer_list = [(layer, layer) for key, val in layer_options.items() for layer in val]
+
+    layer_select_input = SelectInput(display_text='Select Layer',
+                                     name='layer-select-input',
+                                     multiple=False,
+                                     original=True,
+                                     options=layer_list,)
+
+    counties_options = get_counties_options()
+
+    select_counties_input = SelectInput(display_text='Select County(s)',
+                                        name='select-county',
+                                        multiple=True,
+                                        original=False,
+                                        options=counties_options,
+                                        # initial=counties_options[0],
+                                        attributes={'id': 'select-county'})
+
+    delete_button = Button(display_text='Delete Layer',
+                           icon='glyphicon glyphicon-minus',
+                           style='danger',
+                           name='submit-delete-layer',
+                           attributes={'id': 'submit-delete-layer'},
+                           classes="delete")
+
+    context = {
+        'layer_select_input': layer_select_input,
+        'delete_button': delete_button,
+        'select_counties_input': select_counties_input
+    }
+
+    return render(request, 'glo_vli/delete_layer.html', context)

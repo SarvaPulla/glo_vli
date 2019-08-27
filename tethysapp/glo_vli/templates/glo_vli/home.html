@@ -25,12 +25,14 @@
 {% url 'glo_vli:add-polygon' as add_polygon_url %}
 {% url 'glo_vli:approve-polygons' as approve_polygon_url %}
 {% url 'glo_vli:add-new-layer' as add_new_layer %}
+{% url 'glo_vli:delete-layer' as delete_layer %}
 <li class="title">Configuration</li>
 <li class="{% if request.path == add_point_url %}active{% endif %}" ><a href="{{add_point_url}}" >Add a Point</a></li>
 <li class="{% if request.path == approve_point_url %}active{% endif %}"><a href="{{approve_point_url}}">Approve Points</a></li>
 <li class="{% if request.path == add_polygon_url %}active{% endif %}"><a href="{{add_polygon_url}}">Add a Polygon</a></li>
 <li class="{% if request.path == approve_polygon_url %}active{% endif %}"><a href="{{approve_polygon_url}}">Approve Polygons</a></li>
 <li class="{% if request.path == add_new_layer %}active{% endif %}"><a href="{{add_new_layer}}">Add New Layer</a></li>
+<li class="{% if request.path == delete_layer %}active{% endif %}"><a href="{{delete_layer}}">Delete Layer</a></li>
 {% endif%}
 {% endblock %}
 

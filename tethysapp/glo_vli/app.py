@@ -39,11 +39,20 @@ class GloVli(TethysAppBase):
                 url='glo-vli/get-meta-file',
                 controller='glo_vli.controllers_ajax.get_meta_file'
             ),
-
             UrlMap(
                 name='add-point',
                 url='glo-vli/add-point',
                 controller='glo_vli.controllers.add_point'
+            ),
+            UrlMap(
+                name='delete-layer',
+                url='glo-vli/delete-layer',
+                controller='glo_vli.controllers.delete_layer'
+            ),
+            UrlMap(
+                name='submit-delete-layer',
+                url='glo-vli/delete-layer/submit',
+                controller='glo_vli.controllers_ajax.layer_delete'
             ),
             UrlMap(
                 name='add-point-ajax',
@@ -62,7 +71,7 @@ class GloVli(TethysAppBase):
             UrlMap(
                 name='approve-points_tabulator',
                 url='glo-vli/approve-points/tabulator',
-                controller='glo_vli.controllers_ajax.tabulator'),
+                controller='glo_vli.controllers_ajax.points_tabulator'),
             UrlMap(
                 name='update-points-ajax',
                 url='glo-vli/approve-points/submit',
@@ -90,6 +99,10 @@ class GloVli(TethysAppBase):
                 name='approve-polygons-table',
                 url='glo-vli/approve-polygons/table',
                 controller='glo_vli.controllers.approve_polygons_table'),
+            UrlMap(
+                name='approve-polygons-tabulator',
+                url='glo-vli/approve-polygons/tabulator',
+                controller='glo_vli.controllers_ajax.polygons_tabulator'),
             UrlMap(
                 name='update-polygons-ajax',
                 url='glo-vli/approve-polygons/submit',

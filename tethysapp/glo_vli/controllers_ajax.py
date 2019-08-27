@@ -10,7 +10,7 @@ from .model import *
 from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
-    get_shapefile_attributes
+    get_shapefile_attributes, get_layer_options
 import requests
 from shapely.geometry import shape
 import os
@@ -96,7 +96,6 @@ def point_update(request):
         point_attribute = post_info.get('point_attribute')
         point_approved = post_info.get('point_approved')
         point_approved = json.loads(point_approved)
-        print(point_approved)
 
         county = get_point_county_name(point_longitude, point_latitude)
 
@@ -257,9 +256,11 @@ def polygon_update(request):
         polygon_id = post_info.get('polygon_id')
         polygon_approved = post_info.get('polygon_approved')
         polygon_attribute = post_info.get('polygon_attribute')
+        polygon_approved = json.loads(polygon_approved)
+
 
         # check data
-        if not polygon_id or not polygon_approved:
+        if not polygon_id:
             return JsonResponse({'error': "Missing input data."})
         # make sure id is id
         try:
@@ -302,7 +303,7 @@ def polygon_update(request):
         polygon = session.query(Polygons).get(polygon_id)
         try:
 
-            polygon.approved = eval(polygon_approved)
+            polygon.approved = polygon_approved
             polygon.meta_dict = meta_dict
             polygon.attr_dict = attr_dict
 
@@ -437,7 +438,7 @@ def new_layer_add(request):
 
 
 @user_passes_test(user_permission_test)
-def tabulator(request):
+def points_tabulator(request):
 
     json_obj = {}
 
@@ -475,4 +476,85 @@ def tabulator(request):
     response = {"data": data_dict, "last_page": last_page}
 
     return JsonResponse(response)
+
+
+@user_passes_test(user_permission_test)
+def polygons_tabulator(request):
+
+    json_obj = {}
+
+    info = request.GET
+
+    page = int(request.GET.get('page'))
+    page = page - 1
+    size = int(request.GET.get('size'))
+
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    # RESULTS_PER_PAGE = 10
+    num_polygons = session.query(Polygons).count()
+    last_page = math.ceil(int(num_polygons) / int(size))
+
+    # # Query DB for data store types
+    polygons = session.query(Polygons) \
+             .order_by(Polygons.id) \
+             [(page * size):((page+1) * size)]
+
+    data_dict = []
+
+    for polygon in polygons:
+        json_obj = {}
+        json_obj["id"] = polygon.id
+        json_obj["layer_name"] = polygon.layer_name
+        json_obj["county"] = polygon.county
+        json_obj["attributes"] = json.dumps(polygon.attr_dict)
+        json_obj["metadata"] = json.dumps(polygon.meta_dict)
+        json_obj["approved"] = polygon.approved
+        data_dict.append(json_obj)
+
+    response = {"data": data_dict, "last_page": last_page}
+
+    return JsonResponse(response)
+
+
+@user_passes_test(user_permission_test)
+def layer_delete(request):
+    """
+    Controller for deleting a polygon.
+    """
+    if request.is_ajax() and request.method == 'POST':
+        # get/check information from AJAX request
+        post_info = request.POST
+
+        layer = post_info.get('layer')
+        counties = post_info.get('counties')
+        print(layer)
+        counties = tuple(counties.split(','))
+        print(counties)
+
+        layer_options = get_layer_options()
+        table_type = [key for key, value in layer_options.items() if layer in layer_options[key]][0]
+
+        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+        session = Session()
+        try:
+            # delete layer
+            try:
+                if table_type == 'polygons':
+                    polygons = session.query(Polygons).filter_by(layer_name=layer).filter(Polygons.county.in_(counties)).all()
+                    session.delete(polygons)
+                    session.commit()
+                else:
+                    points = session.query(Points).filter_by(layer_name=layer).filter(Points.county.in_(counties)).all()
+                    session.delete(points)
+                    session.commit()
+            except ObjectDeletedError:
+                session.close()
+                return JsonResponse({'error': "The layer to delete does not exist."})
+
+            session.close()
+            return JsonResponse({'success': "Layer successfully deleted!"})
+        except IntegrityError:
+            session.close()
+            return JsonResponse({'error': "There is a problem with your request."})
 
