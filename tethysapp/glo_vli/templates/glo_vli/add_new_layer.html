@@ -5,24 +5,9 @@
 
 
 {% block app_content %}
-<style>
-    #map {
-        height: 350px;
-        width: 100%;
-        position: relative;
-    }
-    /*remove*/
-    /*{*/
-    /*    float:right;*/
-    /*    display:block;*/
-    /*    margin:5px;*/
-    /*}*/
-</style>
+
 <h3>Add New Layer</h3>
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
-<div id="map" class="map"></div>
-
-
 {% gizmo  add_new_select %}
 <div class="layer_text hidden">
     {% gizmo  layer_text_input %}

@@ -5,25 +5,8 @@
 
 
 {% block app_content %}
-<style>
-    #map {
-        height: 350px;
-        width: 100%;
-        position: relative;
-    }
-    /*remove*/
-    /*{*/
-    /*    float:right;*/
-    /*    display:block;*/
-    /*    margin:5px;*/
-    /*}*/
-</style>
 <h3>Delete Layer</h3>
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
-<div id="map" class="map"></div>
-
-
-
 {% gizmo  layer_select_input %}
 
 {% gizmo select_counties_input %}

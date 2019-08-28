@@ -169,40 +169,6 @@ def approve_points(request):
 
 
 @user_passes_test(user_permission_test)
-def approve_points_table(request):
-
-    # initialize session
-    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-    session = Session()
-    RESULTS_PER_PAGE = 5
-
-    page = int(request.GET.get('page'))
-
-    # Query DB for data store types
-    points = session.query(Points) \
-             .order_by(Points.id) \
-             [(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
-
-    prev_button = Button(display_text='Previous',
-                         name='prev_button',
-                         attributes={'class': 'nav_button'},)
-
-    next_button = Button(display_text='Next',
-                         name='next_button',
-                         attributes={'class': 'nav_button'},)
-
-    context = {
-        'prev_button': prev_button,
-        'next_button': next_button,
-        'points': points,
-    }
-
-    session.close()
-
-    return render(request, 'glo_vli/approve_points_table.html', context)
-
-
-@user_passes_test(user_permission_test)
 def add_polygon(request):
 
     polygon_input = TextInput(display_text='Polygon input',
@@ -315,40 +281,6 @@ def approve_polygons(request):
     }
 
     return render(request, 'glo_vli/approve_polygons.html', context)
-
-
-@user_passes_test(user_permission_test)
-def approve_polygons_table(request):
-
-    # initialize session
-    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-    session = Session()
-    RESULTS_PER_PAGE = 5
-
-    page = int(request.GET.get('page'))
-
-    # Query DB for data store types
-    polygons = session.query(Polygons) \
-                   .order_by(Polygons.id) \
-                   .filter_by(approved=False)[(page * RESULTS_PER_PAGE):((page + 1)*RESULTS_PER_PAGE)]
-
-    prev_button = Button(display_text='Previous',
-                         name='prev_button',
-                         attributes={'class': 'nav_button'},)
-
-    next_button = Button(display_text='Next',
-                         name='next_button',
-                         attributes={'class': 'nav_button'},)
-
-    context = {
-        'prev_button': prev_button,
-        'next_button': next_button,
-        'polygons': polygons
-    }
-
-    session.close()
-
-    return render(request, 'glo_vli/approve_polygons_table.html', context)
 
 
 @user_passes_test(user_permission_test)
