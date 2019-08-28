@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from tethys_sdk.gizmos import Button, TextInput, SelectInput
 from .utils import user_permission_test, get_counties_options, \
-    add_polygons, add_points, get_legend_options, get_layer_options
+    get_legend_options, get_layer_options
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -12,9 +12,6 @@ def home(request):
     """
     Controller for the app home page.
     """
-
-    # add_points()
-    # add_polygons()
 
     counties_options = get_counties_options()
 
