@@ -1,9 +1,5 @@
 from django.http import JsonResponse, HttpResponse, Http404
-from django.shortcuts import render
 from django.contrib.auth.decorators import login_required, user_passes_test
-from django.views.decorators.csrf import csrf_exempt
-from tethys_sdk.gizmos import *
-import json
 from sqlalchemy.orm.exc import ObjectDeletedError
 from sqlalchemy.exc import IntegrityError
 from .model import *
@@ -11,15 +7,12 @@ from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
     get_shapefile_attributes, get_layer_options
-import requests
 from shapely.geometry import shape
 import os
 import json
-from mimetypes import guess_type
 from django.utils.encoding import smart_str
 import geojson
 import math
-import ast
 
 
 @user_passes_test(user_permission_test)
@@ -528,9 +521,7 @@ def layer_delete(request):
 
         layer = post_info.get('layer')
         counties = post_info.get('counties')
-        print(layer)
         counties = tuple(counties.split(','))
-        print(counties)
 
         layer_options = get_layer_options()
         table_type = [key for key, value in layer_options.items() if layer in layer_options[key]][0]
@@ -541,12 +532,13 @@ def layer_delete(request):
             # delete layer
             try:
                 if table_type == 'polygons':
-                    polygons = session.query(Polygons).filter_by(layer_name=layer).filter(Polygons.county.in_(counties)).all()
-                    session.delete(polygons)
+                    polygons = session.query(Polygons).filter(Polygons.layer_name == layer,
+                                                              Polygons.county.in_(counties))
+                    polygons.delete(synchronize_session=False)
                     session.commit()
                 else:
-                    points = session.query(Points).filter_by(layer_name=layer).filter(Points.county.in_(counties)).all()
-                    session.delete(points)
+                    points = session.query(Points).filter(Points.layer_name == layer, Points.county.in_(counties))
+                    points.delete(synchronize_session=False)
                     session.commit()
             except ObjectDeletedError:
                 session.close()
