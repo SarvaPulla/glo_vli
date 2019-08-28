@@ -37,8 +37,6 @@ var LIBRARY_OBJECT = (function() {
      *************************************************************************/
     var clear_coords,
         delete_polygon,
-        getTablePage,
-        initializeTableFunctions,
         init_events,
         init_jquery_vars,
         init_all,

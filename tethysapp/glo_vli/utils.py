@@ -12,7 +12,8 @@ from shapely.geometry import Point, Polygon, MultiPolygon
 import tempfile
 import shutil
 from django.http import JsonResponse
-from .config import geoserver_wfs_url, geoserver_wms_url, data_dir
+import uuid
+from .config import geoserver_wfs_url, geoserver_wms_url, shapefile_processing_dir
 
 
 def user_permission_test(user):
@@ -123,7 +124,9 @@ def get_legend_options():
 
 def get_shapefile_attributes(shapefile):
 
-    temp_dir = tempfile.mkdtemp()
+    temp_id = uuid.uuid4()
+    temp_dir = os.path.join(shapefile_processing_dir, str(temp_id))
+    os.makedirs(temp_dir)
     gbyos_pol_shp = None
 
     try:
@@ -161,7 +164,9 @@ def get_shapefile_attributes(shapefile):
 
 def process_shapefile(shapefile, layer_name, attributes):
 
-    temp_dir = tempfile.mkdtemp()
+    temp_id = uuid.uuid4()
+    temp_dir = os.path.join(shapefile_processing_dir, str(temp_id))
+    os.makedirs(temp_dir)
     gbyos_pol_shp = None
     counties_gdf = get_counties_gdf()
 

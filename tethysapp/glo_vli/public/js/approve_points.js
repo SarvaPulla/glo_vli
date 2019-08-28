@@ -288,7 +288,7 @@ var LIBRARY_OBJECT = (function() {
         point_attribute = Object.keys(point_attribute).map( function(key){ return key+":"+point_attribute[key] }).join(",");
 
         var point_approved = cell_data.approved;
-        var point_meta = cell_data.metatada;
+        var point_meta = cell_data.metadata;
 
         $("#id-input").val(point_id);
         $("#lat-input").val(point_latitude);
