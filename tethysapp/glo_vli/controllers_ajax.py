@@ -399,14 +399,21 @@ def get_shp_attributes(request):
 
     if request.is_ajax() and request.method == 'POST':
 
-        shapefile = request.FILES.getlist('shapefile')
+        try:
 
-        attributes = get_shapefile_attributes(shapefile)
+            shapefile = request.FILES.getlist('shapefile')
 
-        response = {"success": "success",
-                    "attributes": attributes}
+            attributes = get_shapefile_attributes(shapefile)
 
-        return JsonResponse(response)
+            response = {"success": "success",
+                        "attributes": attributes}
+
+            return JsonResponse(response)
+
+        except Exception as e:
+            json_obj = {'error': str(e)}
+
+            return JsonResponse(json_obj)
 
 
 @user_passes_test(user_permission_test)

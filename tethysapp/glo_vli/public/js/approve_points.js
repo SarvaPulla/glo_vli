@@ -401,7 +401,7 @@ var LIBRARY_OBJECT = (function() {
             responsiveLayout:true, // enable responsive layouts
             layout:"fitColumns",
             ajaxURL:"tabulator",
-            ajaxProgressiveLoad:"scroll",
+            ajaxProgressiveLoad:"load",
             paginationSize:10,
             placeholder:"No Data Set",
             columns:[

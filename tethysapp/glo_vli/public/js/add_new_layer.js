@@ -52,6 +52,7 @@ var LIBRARY_OBJECT = (function() {
     reset_form = function(result){
         if("success" in result){
             $("#layer-input").val('');
+            $("#shp-upload-input").val('');
             $(".attributes").addClass('hidden');
             addSuccessMessage('Shapefile Upload Complete!');
         }

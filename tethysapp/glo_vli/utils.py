@@ -13,7 +13,7 @@ import tempfile
 import shutil
 from django.http import JsonResponse
 import uuid
-from .config import geoserver_wfs_url, geoserver_wms_url, shapefile_processing_dir
+from .config import geoserver_wfs_url, geoserver_wms_url
 
 
 def user_permission_test(user):
@@ -124,8 +124,10 @@ def get_legend_options():
 
 def get_shapefile_attributes(shapefile):
 
+    app_workspace = app.get_app_workspace()
+
     temp_id = uuid.uuid4()
-    temp_dir = os.path.join(shapefile_processing_dir, str(temp_id))
+    temp_dir = os.path.join(app_workspace.path, str(temp_id))
     os.makedirs(temp_dir)
     gbyos_pol_shp = None
 
@@ -157,6 +159,7 @@ def get_shapefile_attributes(shapefile):
         return JsonResponse({"error": e})
     finally:
         # Delete the temporary directory once the shapefile is processed
+        print(temp_dir)
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
@@ -164,8 +167,9 @@ def get_shapefile_attributes(shapefile):
 
 def process_shapefile(shapefile, layer_name, attributes):
 
+    app_workspace = app.get_app_workspace()
     temp_id = uuid.uuid4()
-    temp_dir = os.path.join(shapefile_processing_dir, str(temp_id))
+    temp_dir = os.path.join(app_workspace.path, str(temp_id))
     os.makedirs(temp_dir)
     gbyos_pol_shp = None
     counties_gdf = get_counties_gdf()
@@ -223,6 +227,7 @@ def process_shapefile(shapefile, layer_name, attributes):
                 shutil.rmtree(temp_dir)
         return {"error": str(e)}
     finally:
+        print(temp_dir)
         # Delete the temporary directory once the shapefile is processed
         if temp_dir is not None:
             if os.path.exists(temp_dir):
