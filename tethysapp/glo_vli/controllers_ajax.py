@@ -411,7 +411,7 @@ def get_shp_attributes(request):
             return JsonResponse(response)
 
         except Exception as e:
-            json_obj = {'error': str(e)}
+            json_obj = {'error': json.dumps(e)}
 
             return JsonResponse(json_obj)
 

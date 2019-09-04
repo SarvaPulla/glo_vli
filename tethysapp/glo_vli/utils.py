@@ -3,8 +3,8 @@ import geopandas as gpd
 import os
 from geoalchemy2 import Geometry, WKTElement
 from sqlalchemy import *
-from tethysapp.glo_vli.app import GloVli as app
-from tethysapp.glo_vli.model import Points, Polygons
+from .app import GloVli as app
+from .model import Points, Polygons
 import requests
 import json
 from shapely import wkt
@@ -147,7 +147,6 @@ def get_shapefile_attributes(shapefile):
                 gbyos_pol_shp = f_path
 
         gdf = gpd.read_file(gbyos_pol_shp)
-        gdf = gdf.to_crs({'init': 'epsg:4326'})
         attributes = gdf.columns.values.tolist()
         attributes = attributes[:-1]
         return attributes
@@ -156,7 +155,7 @@ def get_shapefile_attributes(shapefile):
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
-        return JsonResponse({"error": e})
+        return str(e)
     finally:
         # Delete the temporary directory once the shapefile is processed
         print(temp_dir)
@@ -190,7 +189,6 @@ def process_shapefile(shapefile, layer_name, attributes):
                 gbyos_pol_shp = f_path
 
         gdf = gpd.read_file(gbyos_pol_shp)
-        gdf = gdf.to_crs({'init': 'epsg:4326'})
 
         c_join = gpd.sjoin(gdf, counties_gdf)
 
