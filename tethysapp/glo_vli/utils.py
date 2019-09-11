@@ -13,7 +13,9 @@ import tempfile
 import shutil
 from django.http import JsonResponse
 import uuid
-from .config import geoserver_wfs_url, geoserver_wms_url
+from urllib.parse import urljoin
+from .config import geoserver_wfs_url, geoserver_wms_url, \
+    geoserver_credentials, geoserver_rest_url
 
 
 def user_permission_test(user):
@@ -257,21 +259,87 @@ def process_shapefile(shapefile, layer_name, attributes):
                 shutil.rmtree(temp_dir)
 
 
-def get_point_style_xml(point_size, point_symbology, point_fill, layer_name):
+def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, style_exists):
 
+    style_name = layer_name.replace(r' ', '_').lower()
     point_size = str(point_size)
 
-    point_style_xml = '< ?xml version = "1.0" encoding = "ISO-8859-1"? >' + \
-    '< StyledLayerDescriptor version = "1.0.0" xsi: schemaLocation = "http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd" '+\
-    'xmlns = "http://www.opengis.net/sld" xmlns: ogc = "http://www.opengis.net/ogc" xmlns: xlink = "http://www.w3.org/1999/xlink" xmlns: xsi = "http://www.w3.org/2001/XMLSchema-instance" >' + \
-    '<NamedLayer>' +\
-    '<Name>'+layer_name+'</Name>' +\
-    '<UserStyle>'+\
-    '<Title>'+layer_name+'</Title>' +\
-    '<FeatureTypeStyle><Rule><Title>'+layer_name+'</Title>' +\
-    '<PointSymbolizer><Graphic><Mark>' +\
-    '<WellKnownName>'+point_symbology+'</WellKnownName>' +\
-    '<Fill><CssParameter name="fill">#'+point_fill+'</CssParameter>' +\
-    '</Fill></Mark><Size>'+str(point_size)+'</Size></Graphic></PointSymbolizer>' +\
-    '</Rule></FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>'
-    return point_style_xml
+    sld_string = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
+    sld_string += '<StyledLayerDescriptor version="1.0.0"\n'
+    sld_string += '\txsi:schemaLocation="http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd"\n'
+    sld_string += '\txmlns="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc"\n'
+    sld_string += '\txmlns:xlink="http://www.w3.org/1999/xlink" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">\n'
+    sld_string += '\t\t<NamedLayer>\n'
+    sld_string += '\t\t<Name>{}</Name>\n'.format(layer_name)
+    sld_string += '\t\t<UserStyle>\n'
+    sld_string += '\t\t<Title>{}</Title>\n'.format(layer_name)
+    sld_string += '\t\t\t<FeatureTypeStyle>\n'
+    sld_string += '\t\t\t\t<Rule>\n'
+    sld_string += '\t\t\t\t\t<Title>{}</Title>\n'.format(layer_name)
+    sld_string += '\t\t\t\t\t\t<PointSymbolizer>\n'
+    sld_string += '\t\t\t\t\t\t\t<Graphic>\n'
+    sld_string += '\t\t\t\t\t\t\t\t<Mark>\n'
+    sld_string += '\t\t\t\t\t\t\t\t\t<WellKnownName>{}</WellKnownName>\n'.format(point_symbology)
+    sld_string += '\t\t\t\t\t\t\t\t\t<Fill>\n'
+    sld_string += '\t\t\t\t\t\t\t\t\t\t<CssParameter name="fill">#{}</CssParameter>\n'.format(point_fill)
+    sld_string += '\t\t\t\t\t\t\t\t\t</Fill>\n'
+    sld_string += '\t\t\t\t\t\t\t\t</Mark>\n'
+    sld_string += '\t\t\t\t\t\t\t\t<Size>{}</Size>\n'.format(point_size)
+    sld_string += '\t\t\t\t\t\t\t</Graphic>\n'
+    sld_string += '\t\t\t\t\t\t</PointSymbolizer>\n'
+    sld_string += '\t\t\t\t</Rule>\n'
+    sld_string += '\t\t\t</FeatureTypeStyle>\n'
+    sld_string += '\t\t</UserStyle>\n'
+    sld_string += '\t</NamedLayer>\n'
+    sld_string += '</StyledLayerDescriptor>\n'
+
+    sld_name = style_name + '.sld'
+
+    app_workspace = app.get_app_workspace()
+    temp_id = uuid.uuid4()
+    temp_dir = os.path.join(app_workspace.path, str(temp_id))
+    os.makedirs(temp_dir)
+    f_path = os.path.join(temp_dir, sld_name)
+    fh = open(f_path, 'w')
+    fh.write(sld_string)
+    fh.close()
+
+    if style_exists:
+        headers = {'content-type': 'application/vnd.ogc.sld+xml'}
+        resource = 'styles/{}'.format(sld_name)
+
+        request_url = urljoin(geoserver_rest_url, resource)
+        with open(f_path, 'rb') as f:
+            r = requests.put(
+                request_url,
+                data=f,
+                headers=headers,
+                auth=geoserver_credentials
+            )
+    else:
+        resource = 'styles'
+        payload = \
+            '<style><name>{0}</name><filename>{1}</filename></style>'.format(style_name, sld_name)
+        headers = {'content-type': 'text/xml'}
+
+        request_url = urljoin(geoserver_rest_url, resource)
+
+        r = requests.post(
+            request_url,
+            data=payload,
+            headers=headers,
+            auth=geoserver_credentials
+        )
+
+        resource2 = 'styles/{}'.format(sld_name)
+        request_url2 = urljoin(geoserver_rest_url, resource2)
+        headers2 = {'content-type': 'application/vnd.ogc.sld+xml'}
+        with open(f_path, 'rb') as f:
+            r = requests.put(
+                request_url2,
+                data=f,
+                headers=headers2,
+                auth=geoserver_credentials
+            )
+
+    return sld_string

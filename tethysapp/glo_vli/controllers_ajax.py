@@ -583,29 +583,18 @@ def layer_style_set(request):
         layer_type = layer_info.split('|')[1]
         style_name = layer_name.replace(r' ', '_').lower()
 
-        headers = {'content-type': 'text/xml'}
-        get_styles_url = geoserver_rest_url + '/styles.json'
+        get_styles_url = geoserver_rest_url + 'styles.json'
         r_get = requests.get(get_styles_url, auth=geoserver_credentials)
         styles_json = r_get.json()
         styles_list = styles_json["styles"]["style"]
+        exists = any(d['name'] == style_name for d in styles_list)
+
         if layer_type == 'points':
             point_size = post_info.get('point_size')
             point_symbology = post_info.get('point_symbology')
             point_fill = post_info.get('point_fill')
-            point_xml = get_point_style_xml(point_size, point_symbology, point_fill, layer_name)
-            if not any(d['name'] == style_name for d in styles_list):
-                print("doesnt exists")
-            else:
-                print("exists")
-                request_url = geoserver_rest_url + '/styles/' + style_name
-                print(request_url)
-                r = requests.put(
-                    request_url,
-                    data=point_xml,
-                    headers=headers,
-                    auth=geoserver_credentials
-                )
-                print(r)
+            point_xml = get_point_style_xml(point_size, point_symbology, point_fill,
+                                            layer_name, exists)
 
     return JsonResponse({'success': 'Layer style set successfully.'})
 
