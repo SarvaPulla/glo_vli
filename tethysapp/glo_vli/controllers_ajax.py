@@ -6,18 +6,24 @@ from .model import *
 from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
-    get_shapefile_attributes, get_layer_options
+    get_shapefile_attributes, get_layer_options, get_point_style_xml
 from shapely.geometry import shape
 import os
 import json
 from django.utils.encoding import smart_str
 import geojson
 import math
+import requests
+import json
+from urllib.parse import urljoin
+from .config import geoserver_rest_url, geoserver_credentials
 
 
 @user_passes_test(user_permission_test)
 def point_add(request):
 
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
     try:
 
         if request.is_ajax() and request.method == 'POST':
@@ -56,8 +62,6 @@ def point_add(request):
                 attributes = attributes.split(',')
                 attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
 
-            Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-            session = Session()
             point = Points(layer_name=layer_name, latitude=latitude, longitude=longitude, county=county,
                            approved=False, attr_dict=attr_dict, meta_dict=meta_dict)
             session.add(point)
@@ -70,6 +74,7 @@ def point_add(request):
             return JsonResponse(response)
 
     except Exception as e:
+        session.close()
         return JsonResponse({'error': "There is a problem with your request. " + str(e)})
 
 
@@ -78,6 +83,9 @@ def point_update(request):
     """
     Controller for updating a point.
     """
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
     if request.is_ajax() and request.method == 'POST':
         # get/check information from AJAX request
         post_info = request.POST
@@ -131,9 +139,6 @@ def point_update(request):
         except ValueError:
             return JsonResponse({'error': 'Point id is faulty.'})
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
-
         point = session.query(Points).get(point_id)
         try:
             point.latitude = point_latitude
@@ -148,6 +153,7 @@ def point_update(request):
             session.close()
             return JsonResponse({'success': "Point successfully updated!"})
         except Exception as e:
+            session.close()
             return JsonResponse({'error': "There is a problem with your request. " + str(e)})
 
 
@@ -156,14 +162,15 @@ def point_delete(request):
     """
     Controller for deleting a point.
     """
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
     if request.is_ajax() and request.method == 'POST':
         # get/check information from AJAX request
         post_info = request.POST
 
         point_id = post_info.get('point_id')
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
         try:
             # delete point
             try:
@@ -184,6 +191,8 @@ def point_delete(request):
 @user_passes_test(user_permission_test)
 def polygon_add(request):
 
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
     try:
         if request.is_ajax() and request.method == 'POST':
             info = request.POST
@@ -221,8 +230,6 @@ def polygon_add(request):
                 attributes = attributes.split(',')
                 attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
 
-            Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-            session = Session()
             polygon = Polygons(layer_name=layer, county=county, attr_dict=attr_dict,
                                approved=False, geometry=geom.wkt, meta_dict=meta_dict)
             session.add(polygon)
@@ -233,7 +240,7 @@ def polygon_add(request):
 
             return JsonResponse(response)
     except Exception as e:
-
+        session.close()
         response = {"error": str(e)}
         return JsonResponse(response)
 
@@ -243,6 +250,8 @@ def polygon_update(request):
     """
     Controller for updating a polygon.
     """
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
     if request.is_ajax() and request.method == 'POST':
         # get/check information from AJAX request
         post_info = request.POST
@@ -290,9 +299,6 @@ def polygon_update(request):
             attributes = polygon_attribute.split(',')
             attr_dict = {attr.split(':')[0]: attr.split(':')[1] for attr in attributes}
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
-
         polygon = session.query(Polygons).get(polygon_id)
         try:
 
@@ -304,6 +310,7 @@ def polygon_update(request):
             session.close()
             return JsonResponse({'success': "polygon successfully updated!"})
         except Exception as e:
+            session.close()
             return JsonResponse({'error': "There is a problem with your request. " + str(e)})
 
 
@@ -312,14 +319,14 @@ def polygon_delete(request):
     """
     Controller for deleting a polygon.
     """
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
     if request.is_ajax() and request.method == 'POST':
         # get/check information from AJAX request
         post_info = request.POST
 
         polygon_id = post_info.get('polygon_id')
 
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
         try:
             # delete point
             try:
@@ -352,9 +359,11 @@ def get_popup_info(request):
 
     json_obj['type'] = table
 
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
     try:
-        Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
+
 
         info = None
 
@@ -369,8 +378,10 @@ def get_popup_info(request):
         json_obj['layer_name'] = info.layer_name
         json_obj['success'] = 'success'
 
-    except Exception as e:
+        session.close()
 
+    except Exception as e:
+        session.close()
         json_obj['error'] = str(e)
 
     return JsonResponse(json_obj)
@@ -473,6 +484,8 @@ def points_tabulator(request):
         json_obj["approved"] = point.approved
         data_dict.append(json_obj)
 
+    session.close()
+
     response = {"data": data_dict, "last_page": last_page}
 
     return JsonResponse(response)
@@ -511,6 +524,8 @@ def polygons_tabulator(request):
         json_obj["metadata"] = json.dumps(polygon.meta_dict)
         json_obj["approved"] = polygon.approved
         data_dict.append(json_obj)
+
+    session.close()
 
     response = {"data": data_dict, "last_page": last_page}
 
@@ -556,4 +571,42 @@ def layer_delete(request):
         except IntegrityError:
             session.close()
             return JsonResponse({'error': "There is a problem with your request."})
+
+
+@user_passes_test(user_permission_test)
+def layer_style_set(request):
+
+    if request.is_ajax() and request.method == 'POST':
+        post_info = request.POST
+        layer_info = post_info.get('layer')
+        layer_name = layer_info.split('|')[0]
+        layer_type = layer_info.split('|')[1]
+        style_name = layer_name.replace(r' ', '_').lower()
+
+        headers = {'content-type': 'text/xml'}
+        get_styles_url = geoserver_rest_url + '/styles.json'
+        r_get = requests.get(get_styles_url, auth=geoserver_credentials)
+        styles_json = r_get.json()
+        styles_list = styles_json["styles"]["style"]
+        if layer_type == 'points':
+            point_size = post_info.get('point_size')
+            point_symbology = post_info.get('point_symbology')
+            point_fill = post_info.get('point_fill')
+            point_xml = get_point_style_xml(point_size, point_symbology, point_fill, layer_name)
+            if not any(d['name'] == style_name for d in styles_list):
+                print("doesnt exists")
+            else:
+                print("exists")
+                request_url = geoserver_rest_url + '/styles/' + style_name
+                print(request_url)
+                r = requests.put(
+                    request_url,
+                    data=point_xml,
+                    headers=headers,
+                    auth=geoserver_credentials
+                )
+                print(r)
+
+    return JsonResponse({'success': 'Layer style set successfully.'})
+
 

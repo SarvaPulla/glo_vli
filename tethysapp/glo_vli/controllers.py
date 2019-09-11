@@ -372,3 +372,67 @@ def delete_layer(request):
     }
 
     return render(request, 'glo_vli/delete_layer.html', context)
+
+
+@user_passes_test(user_permission_test)
+def set_layer_style(request):
+    """
+    Controller for the upload layer page.
+    """
+
+    layer_options = get_layer_options()
+    layer_list = [(layer, str(layer)+'|'+str(key)) for key, val in layer_options.items() for layer in val]
+
+    layer_select_input = SelectInput(display_text='Select Layer',
+                                     name='layer-select-input',
+                                     multiple=False,
+                                     original=True,
+                                     options=layer_list,)
+
+    set_style_button = Button(display_text='Set Layer Style',
+                              icon='glyphicon glyphicon-plus',
+                              style='danger',
+                              name='submit-delete-layer',
+                              attributes={'id': 'submit-set-layer'},
+                              classes="submit")
+
+    point_size_input = TextInput(display_text='Point Size',
+                                 name='point-size-input',
+                                 placeholder='e.g.: 10',
+                                 attributes={'id': 'point-size-input'},
+                                 )
+
+    select_point_symbology = SelectInput(display_text='Select Point Symbology',
+                                         name='select-point-symbology',
+                                         attributes={'id': 'select-point-symbology'},
+                                         multiple=False,
+                                         options=[('circle', 'circle'),
+                                                  ('square', 'square'),
+                                                  ('triangle', 'triangle'),
+                                                  ('arrow', 'arrow'),
+                                                  ('cross', 'cross'),
+                                                  ('star', 'star'),
+                                                  ('x', 'x')])
+
+    polygon_fill_opacity = TextInput(display_text='Polygon Fill Opacity',
+                                     name='polygon-fill-opacity',
+                                     placeholder='e.g.: 0.7. Goes from 0 to 1.',
+                                     attributes={'id': 'polygon-fill-opacity'},
+                                     )
+
+    polygon_stroke_width = TextInput(display_text='Polygon Stroke Width',
+                                     name='polygon-stroke-width',
+                                     placeholder='e.g.: 2. The thickness of the fill stroke.',
+                                     attributes={'id': 'polygon-stroke-width'},
+                                     )
+
+    context = {
+        'layer_select_input': layer_select_input,
+        'set_style_button': set_style_button,
+        'select_point_symbology': select_point_symbology,
+        'point_size_input': point_size_input,
+        'polygon_fill_opacity': polygon_fill_opacity,
+        'polygon_stroke_width': polygon_stroke_width
+    }
+
+    return render(request, 'glo_vli/set_layer_style.html', context)

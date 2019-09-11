@@ -131,7 +131,6 @@ var LIBRARY_OBJECT = (function() {
             if("success" in return_data){
                 submit_button.html(submit_button_html);
                 $(".attributes").removeClass('hidden');
-                console.log(return_data);
                 $("#select_attributes").html('');
                 var attributes = return_data["attributes"];
                 attributes.forEach(function(attr,i){

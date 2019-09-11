@@ -26,6 +26,7 @@
 {% url 'glo_vli:approve-polygons' as approve_polygon_url %}
 {% url 'glo_vli:add-new-layer' as add_new_layer %}
 {% url 'glo_vli:delete-layer' as delete_layer %}
+{% url 'glo_vli:set-layer-style' as set_layer_style %}
 <li class="title">Configuration</li>
 <li class="{% if request.path == add_point_url %}active{% endif %}" ><a href="{{add_point_url}}" >Add a Point</a></li>
 <li class="{% if request.path == approve_point_url %}active{% endif %}"><a href="{{approve_point_url}}">Approve Points</a></li>
@@ -33,6 +34,7 @@
 <li class="{% if request.path == approve_polygon_url %}active{% endif %}"><a href="{{approve_polygon_url}}">Approve Polygons</a></li>
 <li class="{% if request.path == add_new_layer %}active{% endif %}"><a href="{{add_new_layer}}">Add/Update Layer</a></li>
 <li class="{% if request.path == delete_layer %}active{% endif %}"><a href="{{delete_layer}}">Delete Layer</a></li>
+<li class="{% if request.path == set_layer_style %}active{% endif %}"><a href="{{set_layer_style}}">Set Layer Style</a></li>
 {% endif%}
 {% endblock %}
 

@@ -209,7 +209,7 @@ var LIBRARY_OBJECT = (function() {
                             var attr_dict = return_data["attr_dict"];
                             if(Object.keys(attr_dict).length>0){
                                 $.each(attr_dict, function (key, val) {
-                                    attr_text_html += '<p>'+key+':'+val+'</p><br>'
+                                    attr_text_html += '<span>'+key+':'+val+'</span><br>'
                                 });
                             }else{
                                 attr_text_html += 'No Attributes';

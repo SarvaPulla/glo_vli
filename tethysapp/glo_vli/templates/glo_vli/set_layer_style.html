@@ -1,0 +1,45 @@
+{% extends "glo_vli/base.html" %}
+{% load tethys_gizmos %}
+{% load staticfiles %}
+
+
+
+{% block app_content %}
+<h3>Set Layer Style</h3>
+<div id="message" class="alert alert-danger hidden" role="alert"></div>
+{% gizmo  layer_select_input %}
+
+<div class="point_form">
+    {% gizmo select_point_symbology %}
+    {% gizmo point_size_input %}
+    <label>
+        Select Fill Color
+    </label>
+    <input class="jscolor" value="ab2567" name="point-fill" id="point-fill" style="width: 100%">
+</div>
+
+<div class="polygon_form">
+    <label>
+        Select Fill Color
+    </label>
+    <input class="jscolor" value="ab2567" name="polygon-fill" id="polygon-fill" style="width: 100%">
+    {% gizmo polygon_fill_opacity %}
+    <label>
+        Select Stroke Color
+    </label>
+    <input class="jscolor" value="ab2567" name="polygon-stroke" id="polygon-stroke" style="width: 100%">
+    {% gizmo polygon_stroke_width %}
+</div>
+
+
+<div style="height: 1em;">
+
+</div>
+{% gizmo set_style_button %}
+
+{% endblock %}
+
+{% block scripts %}
+{{ block.super }}
+<script src="{% static 'glo_vli/js/set_layer_style.js' %}" type="text/javascript"></script>
+{% endblock %}

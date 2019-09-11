@@ -124,6 +124,16 @@ class GloVli(TethysAppBase):
                 url='glo-vli/add-new-layer/submit',
                 controller='glo_vli.controllers_ajax.new_layer_add'
             ),
+            UrlMap(
+                name='set-layer-style',
+                url='glo-vli/set-layer-style',
+                controller='glo_vli.controllers.set_layer_style'
+            ),
+            UrlMap(
+                name='set-layer-style-ajax',
+                url='glo-vli/set-layer-style/submit',
+                controller='glo_vli.controllers_ajax.layer_style_set'
+            ),
         )
 
         return url_maps

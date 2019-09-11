@@ -56,6 +56,7 @@ def get_counties_gdf():
 
     counties_gdf = gpd.read_file(wfs_request_url)
     counties_gdf.crs = {'init': 'epsg:4326'}
+    counties_gdf = counties_gdf[['CNTY_NM', 'geometry']]
 
     return counties_gdf
 
@@ -130,6 +131,8 @@ def get_shapefile_attributes(shapefile):
     temp_dir = os.path.join(app_workspace.path, str(temp_id))
     os.makedirs(temp_dir)
     gbyos_pol_shp = None
+    upload_csv = None
+    gdf = None
 
     try:
 
@@ -145,10 +148,19 @@ def get_shapefile_attributes(shapefile):
             if file.endswith(".shp"):
                 f_path = os.path.join(temp_dir, file)
                 gbyos_pol_shp = f_path
+            if file.endswith(".csv"):
+                f_path = os.path.join(temp_dir, file)
+                upload_csv = f_path
 
-        gdf = gpd.read_file(gbyos_pol_shp)
+        if gbyos_pol_shp is not None:
+            gdf = gpd.read_file(gbyos_pol_shp)
+
+        if upload_csv is not None:
+            df = pd.read_csv(upload_csv)
+            gdf = gpd.GeoDataFrame(df, crs={'init': 'epsg:4326'}, geometry=df['geometry'].apply(wkt.loads))
+
         attributes = gdf.columns.values.tolist()
-        attributes = attributes[:-1]
+
         return attributes
 
     except Exception as e:
@@ -158,7 +170,6 @@ def get_shapefile_attributes(shapefile):
         return str(e)
     finally:
         # Delete the temporary directory once the shapefile is processed
-        print(temp_dir)
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
@@ -171,7 +182,12 @@ def process_shapefile(shapefile, layer_name, attributes):
     temp_dir = os.path.join(app_workspace.path, str(temp_id))
     os.makedirs(temp_dir)
     gbyos_pol_shp = None
+    upload_csv = None
+    gdf = None
     counties_gdf = get_counties_gdf()
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
 
     try:
 
@@ -188,14 +204,22 @@ def process_shapefile(shapefile, layer_name, attributes):
                 f_path = os.path.join(temp_dir, file)
                 gbyos_pol_shp = f_path
 
-        gdf = gpd.read_file(gbyos_pol_shp)
+            if file.endswith(".csv"):
+                f_path = os.path.join(temp_dir, file)
+                upload_csv = f_path
+
+        if gbyos_pol_shp is not None:
+            gdf = gpd.read_file(gbyos_pol_shp)
+
+        if upload_csv is not None:
+            df = pd.read_csv(upload_csv)
+            gdf = gpd.GeoDataFrame(df, crs={'init': 'epsg:4326'}, geometry=df['geometry'].apply(wkt.loads))
 
         c_join = gpd.sjoin(gdf, counties_gdf)
 
         c_join = c_join[attributes + ['CNTY_NM', 'geometry']]
 
-        Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
-        session = Session()
+        c_join = c_join.dropna()
 
         for index, row in c_join.iterrows():
             if type(row.geometry) == Point:
@@ -220,6 +244,7 @@ def process_shapefile(shapefile, layer_name, attributes):
         return {"success": "success"}
 
     except Exception as e:
+        session.close()
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
@@ -230,3 +255,23 @@ def process_shapefile(shapefile, layer_name, attributes):
         if temp_dir is not None:
             if os.path.exists(temp_dir):
                 shutil.rmtree(temp_dir)
+
+
+def get_point_style_xml(point_size, point_symbology, point_fill, layer_name):
+
+    point_size = str(point_size)
+
+    point_style_xml = '< ?xml version = "1.0" encoding = "ISO-8859-1"? >' + \
+    '< StyledLayerDescriptor version = "1.0.0" xsi: schemaLocation = "http://www.opengis.net/sld http://schemas.opengis.net/sld/1.0.0/StyledLayerDescriptor.xsd" '+\
+    'xmlns = "http://www.opengis.net/sld" xmlns: ogc = "http://www.opengis.net/ogc" xmlns: xlink = "http://www.w3.org/1999/xlink" xmlns: xsi = "http://www.w3.org/2001/XMLSchema-instance" >' + \
+    '<NamedLayer>' +\
+    '<Name>'+layer_name+'</Name>' +\
+    '<UserStyle>'+\
+    '<Title>'+layer_name+'</Title>' +\
+    '<FeatureTypeStyle><Rule><Title>'+layer_name+'</Title>' +\
+    '<PointSymbolizer><Graphic><Mark>' +\
+    '<WellKnownName>'+point_symbology+'</WellKnownName>' +\
+    '<Fill><CssParameter name="fill">#'+point_fill+'</CssParameter>' +\
+    '</Fill></Mark><Size>'+str(point_size)+'</Size></Graphic></PointSymbolizer>' +\
+    '</Rule></FeatureTypeStyle></UserStyle></NamedLayer></StyledLayerDescriptor>'
+    return point_style_xml
