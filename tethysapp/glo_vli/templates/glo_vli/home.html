@@ -151,11 +151,11 @@
 		overflow-y: auto;
 		margin: 5px;
 		color:white;
-		background: #286090;
+		background: white;
 		border: 1px #ddd solid;
 		z-index: 999;
 	}
-	.map-view-legend:hover{background-color:rgba(0, 60, 136, 0.7);!important;color: #fff9fb;}
+	.map-view-legend:hover{background-color:rgba(255, 255, 255, 0.7);!important;color: #fff9fb;}
   .ol-scale-line{
     background: #286090;
   }
@@ -164,8 +164,8 @@
 <div id="map" class="map"></div>
 <div id="popup" class="popup"></div>
 <div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
-  {% for opt in legend_options%}
-  <img src="{{opt.0}}" class="{{opt.1}}"><br>
+  {% for opt in legend_options reversed%}
+  <img src="{{opt.0}}" class="{{opt.1}}" style="display:block;">
   {% endfor %}
 </div>
 {% endblock %}

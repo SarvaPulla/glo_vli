@@ -316,6 +316,10 @@ def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, sty
                 headers=headers,
                 auth=geoserver_credentials
             )
+
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
     else:
         resource = 'styles'
         payload = \
@@ -341,5 +345,8 @@ def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, sty
                 headers=headers2,
                 auth=geoserver_credentials
             )
+
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
 
     return sld_string

@@ -54,6 +54,7 @@ var LIBRARY_OBJECT = (function() {
         gs_wms_url = $meta_element.attr('data-wms-url');
         layer_options = $meta_element.attr('data-layer-options');
         layer_options = JSON.parse(layer_options);
+
     };
 
     init_map = function(){
@@ -214,8 +215,8 @@ var LIBRARY_OBJECT = (function() {
                             }else{
                                 attr_text_html += 'No Attributes';
                             }
-                            popup_content = '<table border="1"><tbody><tr><th>Layer Name</th><th>Attributes</th><th>Links/Files</th></tr>'+
-                                '<tr><td>'+lname+'</td><td>'+attr_text_html+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+                            popup_content = '<table class="table"><tbody><tr><th>Layer Name</th><th>Attributes</th><th colspan="10"></th><th>Links/Files</th></tr>'+
+                                '<tr><td>'+lname+'</td><td colspan="11">'+attr_text_html+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
 
                         }else if("error" in return_data){
                             console.log(return_data["error"]);
