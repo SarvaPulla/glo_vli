@@ -60,7 +60,7 @@ class Polygons(Base):
 
     def __init__(self, layer_name, county, approved, geometry, attr_dict, meta_dict):
         """
-        Constructor for a gage
+        Constructor
         """
 
         self.layer_name = layer_name
@@ -69,6 +69,28 @@ class Polygons(Base):
         self.attr_dict = attr_dict
         self.meta_dict = meta_dict
         self.geometry = 'SRID=4326;{0}'.format(geometry)
+
+
+# SQLAlchemy ORM definition for the Polygon table
+class Endpoints(Base):
+    """
+    SQLAlchemy Endpoint Database table
+    """
+    __tablename__ = 'endpoints'
+
+    # Columns
+    id = Column(Integer, primary_key=True)
+    layer_name = Column(String)
+    layer_type = Column(String)
+    url = Column(String)
+
+    def __init__(self, layer_name, layer_type, url):
+        """
+        Constructor for an endpoint
+        """
+        self.layer_name = layer_name
+        self.layer_type = layer_type
+        self.url = url
 
 
 def init_layer_db(engine, first_time):

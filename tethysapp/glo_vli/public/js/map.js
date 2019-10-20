@@ -21,6 +21,7 @@ var LIBRARY_OBJECT = (function() {
         counties_source,
         counties_layer,
         element,
+        endpoint_options,
         gs_wms_url,
         layers,
         layersDict,
@@ -49,12 +50,12 @@ var LIBRARY_OBJECT = (function() {
      *************************************************************************/
 
     init_jquery_vars = function(){
-
         var $meta_element = $("#metadata");
         gs_wms_url = $meta_element.attr('data-wms-url');
         layer_options = $meta_element.attr('data-layer-options');
         layer_options = JSON.parse(layer_options);
-
+        endpoint_options = $meta_element.attr('data-endpoint-options');
+        endpoint_options = JSON.parse(endpoint_options);
     };
 
     init_map = function(){
@@ -157,7 +158,7 @@ var LIBRARY_OBJECT = (function() {
         var switcher = new ol.control.LayerSwitcher(
             {	target:$(".layerSwitcher").get(0),
                 show_progress:true,
-                extent: true
+                extent: true,
             });
 
         map.addControl(switcher);
@@ -174,8 +175,43 @@ var LIBRARY_OBJECT = (function() {
         var view = map.getView();
         var viewResolution = view.getResolution();
 
-        var wms_url = current_layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, view.getProjection(), {'INFO_FORMAT': 'application/json'}); //Get the wms url for the clicked point
-        if (wms_url) {
+        var layer_type = current_layer.get('layer_type');
+
+        if(layer_type==='wfs') {
+            var lname = current_layer.get('title');
+            var attr_text_html = '';
+            var feature = map.forEachFeatureAtPixel(evt.pixel,
+                function (feature, layer) {
+                    return feature;
+                });
+            if (feature) {
+                var props = feature.getProperties();
+                if (Object.keys(props).length > 0) {
+                    $.each(props, function (key, val) {
+                        if (key !== 'geometry') {
+                            attr_text_html += '<tr><td><span>'+key+':' +val+'</span></td></tr>'
+                        }
+
+                    });
+                    popup_content = '<table class="table"><tr class="bg-primary"><td>Layer Name: '+lname+'</td></tr>'+attr_text_html;
+
+                    $(element).popover({
+                        'placement': 'top',
+                        'html': true,
+                        //Dynamically Generating the popup content
+                        'content': popup_content
+                    });
+
+                    $(element).popover('show');
+                    $(element).next().css('cursor', 'text');
+                }
+            }
+        }
+
+        if(layer_type === 'wms' || layer_type==='dbms') {
+            var wms_url = current_layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, view.getProjection(), {'INFO_FORMAT': 'application/json'}); //Get the wms url for the clicked point
+        }
+        if (layer_type==='dbms') {
             //Retrieving the details for clicked point via the url
             $.ajax({
                 type: "GET",
@@ -210,14 +246,15 @@ var LIBRARY_OBJECT = (function() {
                             var attr_dict = return_data["attr_dict"];
                             if(Object.keys(attr_dict).length>0){
                                 $.each(attr_dict, function (key, val) {
-                                    attr_text_html += '<span>'+key+':'+val+'</span><br>'
+                                    attr_text_html += '<tr><td><span>'+key+':'+val+'</span></td></tr>'
+                                    // attr_text_html += '<span>'+key+':'+val+'</span><br>'
                                 });
                             }else{
                                 attr_text_html += 'No Attributes';
                             }
-                            popup_content = '<table class="table"><tbody><tr><th>Layer Name</th><th>Attributes</th><th colspan="10"></th><th>Links/Files</th></tr>'+
-                                '<tr><td>'+lname+'</td><td colspan="11">'+attr_text_html+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
-
+                            // popup_content = '<table class="table"><tbody><tr class="bg-primary"><th>Layer Name</th><th>Attributes</th><th colspan="10"></th><th>Links/Files</th></tr>'+
+                            //     '<tr><td>'+lname+'</td><td colspan="11">'+attr_text_html+'</td><td>'+file_text_html+'</td></tr></tbody></table>';
+                            popup_content = '<table class="table"><tr class="bg-primary"><td>Layer Name: '+lname+'</td></tr>'+attr_text_html+'<tr><td>Links/Files<br>'+file_text_html+'</td></tr>'
                         }else if("error" in return_data){
                             console.log(return_data["error"]);
                         }
@@ -296,29 +333,53 @@ var LIBRARY_OBJECT = (function() {
                 var cql_str = 'layer_name=' + '\'' + lyr + '\' AND approved=True';
                 var style = lyr.replace(/ /g,"_").toLowerCase();
 
-                wms_source = new ol.source.ImageWMS({
+                wms_source = new ol.source.TileWMS({
                     url: gs_wms_url,
                     params: {
                         'LAYERS': gs_layer,
                         'CQL_FILTER': cql_str,
-                        'STYLES': style
+                        'STYLES': style,
+                        'TILED': true
                     },
                     serverType: 'geoserver',
                     crossOrigin: 'Anonymous'
                 });
 
-                wms_layer = new ol.layer.Image({
+                wms_layer = new ol.layer.Tile({
                     source: wms_source,
                     name:lyr,
-                    visible:true,
-                    title: lyr
+                    visible:false,
+                    title: lyr,
+                    layer_type: 'dbms'
                 });
+
                 map.addLayer(wms_layer);
 
                 layersDict[lyr] = wms_layer;
             });
         });
+        $.each(endpoint_options, function(lyr_key, lyrs){
+            if(lyrs.layer_type==='wfs'){
+                var vectorSource = new ol.source.Vector({
+                    format: new ol.format.GeoJSON(),
+                    crossOrigin: 'Anonymous',
+                    url: function(extent) {
+                        return lyrs.url+'&srsname=EPSG:3857&' +
+                            'bbox=' + extent.join(',') + ',EPSG:3857';
+                    },
+                    strategy: ol.loadingstrategy.bbox,
+                });
 
+                var vector = new ol.layer.Vector({
+                    source: vectorSource,
+                    title: lyrs.layer_name,
+                    layer_type: lyrs.layer_type,
+                    visible:false
+                });
+                map.addLayer(vector);
+            }
+
+        });
     };
 
 
@@ -350,6 +411,7 @@ var LIBRARY_OBJECT = (function() {
     // the DOM tree finishes loading
     $(function() {
         init_all();
+
         $("#select-county").change(function() {
             var counties = ($("#select-county").val());
 

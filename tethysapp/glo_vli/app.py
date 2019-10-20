@@ -134,6 +134,26 @@ class GloVli(TethysAppBase):
                 url='glo-vli/set-layer-style/submit',
                 controller='glo_vli.controllers_ajax.layer_style_set'
             ),
+            UrlMap(
+                name='add-endpoint',
+                url='glo-vli/add-endpoint',
+                controller='glo_vli.controllers.add_endpoint'
+            ),
+            UrlMap(
+                name='add-endpoint-submit',
+                url='glo-vli/add-endpoint/submit',
+                controller='glo_vli.controllers_ajax.endpoint_add'
+            ),
+            UrlMap(
+                name='delete-endpoint',
+                url='glo-vli/delete-endpoint',
+                controller='glo_vli.controllers.delete_endpoint'
+            ),
+            UrlMap(
+                name='delete-endpoint-submit',
+                url='glo-vli/delete-endpoint/submit',
+                controller='glo_vli.controllers_ajax.endpoint_delete'
+            ),
         )
 
         return url_maps

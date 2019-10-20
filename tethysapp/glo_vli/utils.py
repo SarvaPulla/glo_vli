@@ -4,7 +4,7 @@ import os
 from geoalchemy2 import Geometry, WKTElement
 from sqlalchemy import *
 from .app import GloVli as app
-from .model import Points, Polygons
+from .model import Points, Polygons, Endpoints
 import requests
 import json
 from shapely import wkt
@@ -86,6 +86,23 @@ def get_polygon_county_name(geom):
     county = poly_in_poly.CNTY_NM.values[0]
 
     return county
+
+
+def get_endpoint_options():
+
+    endpoints_list = []
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    endpoints = session.query(Endpoints).all()
+    for opt in endpoints:
+        endpoint_options = {}
+        endpoint_options['layer_name'] = opt.layer_name
+        endpoint_options['layer_type'] = opt.layer_type
+        endpoint_options['url'] = opt.url
+        endpoints_list.append(endpoint_options)
+    return endpoints_list
 
 
 def get_layer_options():

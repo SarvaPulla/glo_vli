@@ -43,6 +43,8 @@
 {% url 'glo_vli:add-new-layer' as add_new_layer %}
 {% url 'glo_vli:delete-layer' as delete_layer %}
 {% url 'glo_vli:set-layer-style' as set_layer_style %}
+{% url 'glo_vli:add-endpoint' as add_endpoint %}
+{% url 'glo_vli:delete-endpoint' as delete_endpoint %}
 <li class="title">Configuration</li>
 <li class="{% if request.path == home_url %}active{% endif %}"><a href="{{home_url}}">Home</a></li>
 <li class="{% if request.path == add_point_url %}active{% endif %}"><a href="{{add_point_url}}">Add a Point</a></li>
@@ -52,6 +54,8 @@
 <li class="{% if request.path == add_new_layer %}active{% endif %}"><a href="{{add_new_layer}}">Add/Update Layer</a></li>
 <li class="{% if request.path == delete_layer %}active{% endif %}"><a href="{{delete_layer}}">Delete Layer</a></li>
 <li class="{% if request.path == set_layer_style %}active{% endif %}"><a href="{{set_layer_style}}">Set Layer Style</a></li>
+<li class="{% if request.path == add_endpoint %}active{% endif %}"><a href="{{add_endpoint}}">Add REST Endpoint</a></li>
+<li class="{% if request.path == delete_endpoint %}active{% endif %}"><a href="{{delete_endpoint}}">Delete REST Endpoint</a></li>
 {% endif%}
 {% endblock %}
 

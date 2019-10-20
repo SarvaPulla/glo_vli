@@ -599,3 +599,53 @@ def layer_style_set(request):
     return JsonResponse({'success': 'Layer style set successfully.'})
 
 
+@user_passes_test(user_permission_test)
+def endpoint_add(request):
+
+    json_obj = {}
+
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    if request.is_ajax() and request.method == 'POST':
+        post_info = request.POST
+        layer_name = post_info.get('layer_name')
+        layer_type = post_info.get('type')
+        url = post_info.get('endpoint')
+
+        endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
+        session.add(endpoint)
+        session.commit()
+        session.close()
+
+        json_obj["success"] = "success"
+
+    return JsonResponse(json_obj)
+
+
+@user_passes_test(user_permission_test)
+def endpoint_delete(request):
+
+    json_obj = {}
+
+    Session = GloVli.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    if request.is_ajax() and request.method == 'POST':
+        try:
+            post_info = request.POST
+            layer_name = post_info.get('layer_name')
+
+            endpoint = session.query(Endpoints).filter(Endpoints.layer_name == layer_name)
+            endpoint.delete(synchronize_session=False)
+            session.commit()
+            session.close()
+
+            json_obj["success"] = "success"
+        except ObjectDeletedError:
+            session.close()
+            return JsonResponse({'error': "The layer to delete does not exist."})
+
+    return JsonResponse(json_obj)
+
+

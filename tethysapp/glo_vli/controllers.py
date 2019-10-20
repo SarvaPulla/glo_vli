@@ -2,7 +2,7 @@ from django.shortcuts import render
 from django.contrib.auth.decorators import user_passes_test
 from tethys_sdk.gizmos import Button, TextInput, SelectInput
 from .utils import user_permission_test, get_counties_options, \
-    get_legend_options, get_layer_options
+    get_legend_options, get_layer_options, get_endpoint_options
 from .app import GloVli
 from .model import *
 from .config import geoserver_wms_url
@@ -27,11 +27,14 @@ def home(request):
 
     legend_options = get_legend_options()
 
+    endpoint_options = get_endpoint_options()
+
     context = {
         'select_counties_input': select_counties_input,
         'geoserver_wms_url': geoserver_wms_url,
         'legend_options': legend_options,
-        'layer_options': json.dumps(layer_options)
+        'layer_options': json.dumps(layer_options),
+        'endpoint_options': json.dumps(endpoint_options)
     }
 
     return render(request, 'glo_vli/home.html', context)
@@ -436,3 +439,71 @@ def set_layer_style(request):
     }
 
     return render(request, 'glo_vli/set_layer_style.html', context)
+
+
+@user_passes_test(user_permission_test)
+def add_endpoint(request):
+
+    name_input = TextInput(display_text='Layer Name',
+                           name='name-input',
+                           placeholder='',
+                           attributes={'id': 'name-input'})
+
+    endpoint_input = TextInput(display_text='REST Endpoint',
+                               name='endpoint-input',
+                               placeholder='e.g.: REST Endpoint',
+                               attributes={'id': 'endpoint-input'},
+                               )
+
+    endpoint_type =  SelectInput(display_text='Endpoint Type',
+                                 name='endpoint-type',
+                                 attributes={'id': 'endpoint-type'},
+                                 multiple=False,
+                                 options=[('wms', 'wms'),
+                                          ('wfs', 'wfs')]
+                                 )
+
+    add_button = Button(display_text='Add Endpoint',
+                        icon='glyphicon glyphicon-plus',
+                        style='primary',
+                        name='submit-add-endpoint',
+                        attributes={'id': 'submit-add-endpoint'},
+                        classes="add")
+
+    context = {"name_input": name_input,
+               "endpoint_input": endpoint_input,
+               "endpoint_type": endpoint_type,
+               "add_button": add_button}
+
+    return render(request, 'glo_vli/add_endpoint.html', context)
+
+
+@user_passes_test(user_permission_test)
+def delete_endpoint(request):
+    """
+    Controller for the upload layer page.
+    """
+
+    endpoint_options = get_endpoint_options()
+
+    layer_list = [(opt['layer_name'], opt['layer_name']) for opt in endpoint_options]
+
+    layer_select_input = SelectInput(display_text='Select Endpoint',
+                                     name='layer-select-input',
+                                     multiple=False,
+                                     original=True,
+                                     options=layer_list,)
+
+    delete_button = Button(display_text='Delete Layer',
+                           icon='glyphicon glyphicon-minus',
+                           style='danger',
+                           name='submit-delete-endpoint',
+                           attributes={'id': 'submit-delete-endpoint'},
+                           classes="delete")
+
+    context = {
+        'layer_select_input': layer_select_input,
+        'delete_button': delete_button
+    }
+
+    return render(request, 'glo_vli/delete_endpoint.html', context)
