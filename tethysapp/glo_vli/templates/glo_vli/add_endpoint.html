@@ -10,7 +10,14 @@
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
 {% gizmo name_input %}
 {% gizmo endpoint_input %}
+<p><b>Example WFS Endpoint: <i>http://gs-us-prim-green6.csr.utexas.edu/geoserver/cite/ows?service=WFS&version=1.0.0&request=GetFeature&typeName=cite%3Aqpf24hr_day1_latest&outputFormat=application%2Fjson</i></b></p>
+<p><b>Example WMS Endpoint: <i>https://gs-us-prim-green6.csr.utexas.edu/geoserver/wms</i></b></p>
 {% gizmo endpoint_type %}
+<div class="wms_layer hidden">
+    {% gizmo wms_text_input %}
+    <p><b>Example Layer: <i>cite:qpf48hr_day6_7_latest</i></b></p>
+</div>
+
 {% gizmo add_button %}
 {% endblock %}
 

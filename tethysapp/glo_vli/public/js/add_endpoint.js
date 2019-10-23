@@ -49,6 +49,7 @@ var LIBRARY_OBJECT = (function() {
     reset_form = function(result){
         if("success" in result){
             $("#endpoint-input").val('');
+            $("#wms-text-input").val('');
             addSuccessMessage('Endpoint Added Successfully!');
         }
     };
@@ -64,15 +65,23 @@ var LIBRARY_OBJECT = (function() {
         var type = $("#endpoint-type option:selected").val();
         var endpoint = $("#endpoint-input").val();
         var layer_name = $("#name-input").val();
-
-        if(endpoint == ""){
+        var wms_text_input = $("#wms-text-input").val();
+        if(endpoint === ""){
             addErrorMessage("Please enter a REST endpoint");
             return false;
         }else{
             reset_alert();
         }
+        if(type==='wms'){
+            if(wms_text_input === ""){
+                addErrorMessage("Please enter a WMS Layer");
+                return false;
+            }else{
+                reset_alert();
+            }
+        }
 
-        var xhr = ajax_update_database("submit", {"type": type, "endpoint": endpoint, "layer_name": layer_name});
+        var xhr = ajax_update_database("submit", {"type": type, "endpoint": endpoint, "layer_name": layer_name, "wms_text_input": wms_text_input});
         xhr.done(function(return_data){
             if("success" in return_data){
                 reset_form(return_data);
@@ -110,6 +119,15 @@ var LIBRARY_OBJECT = (function() {
 // the DOM tree finishes loading
     $(function() {
         init_all();
+        $("#endpoint-type").change(function(){
+            var layer_type = $("#endpoint-type option:selected").val();
+            console.log(layer_type);
+            if(layer_type === 'wms'){
+                $('.wms_layer').removeClass('hidden');
+            }else{
+                $('.wms_layer').removeClass('hidden');
+            }
+        });
     });
 
     return public_interface;

@@ -6,7 +6,8 @@ from .model import *
 from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
-    get_shapefile_attributes, get_layer_options, get_point_style_xml
+    get_shapefile_attributes, get_layer_options, get_point_style_xml, \
+    get_polygon_style_xml
 from shapely.geometry import shape
 import os
 import json
@@ -595,6 +596,14 @@ def layer_style_set(request):
             point_fill = post_info.get('point_fill')
             point_xml = get_point_style_xml(point_size, point_symbology, point_fill,
                                             layer_name, exists)
+        if layer_type == 'polygons':
+
+            polygon_fill = post_info.get('polygon_fill')
+            polygon_stroke = post_info.get('polygon_stroke')
+            polygon_opacity = post_info.get('polygon_opacity')
+            polygon_stroke_width = post_info.get('polygon_stroke_width')
+            polygon_xml = get_polygon_style_xml(polygon_fill, polygon_stroke, polygon_opacity,
+                                                polygon_stroke_width, layer_name, exists)
 
     return JsonResponse({'success': 'Layer style set successfully.'})
 
@@ -613,12 +622,23 @@ def endpoint_add(request):
         layer_type = post_info.get('type')
         url = post_info.get('endpoint')
 
-        endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
-        session.add(endpoint)
-        session.commit()
-        session.close()
+        if layer_type == 'wfs':
+            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
+            session.add(endpoint)
+            session.commit()
+            session.close()
 
-        json_obj["success"] = "success"
+            json_obj["success"] = "success"
+
+        if layer_type == 'wms':
+            wms_layer_name = post_info.get('wms_text_input')
+            url = url+'|'+wms_layer_name
+
+            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
+            session.add(endpoint)
+            session.commit()
+            session.close()
+            json_obj["success"] = "success"
 
     return JsonResponse(json_obj)
 

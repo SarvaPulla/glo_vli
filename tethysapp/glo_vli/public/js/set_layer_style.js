@@ -49,6 +49,10 @@ var LIBRARY_OBJECT = (function() {
     //Reset the form when the request is made succesfully
     reset_form = function(result){
         if("success" in result){
+            var polygon_stroke = $("#polygon-stroke").val('');
+            var point_size = $("#point-size-input").val('');
+            var polygon_opacity = $("#polygon-fill-opacity").val('');
+            var polygon_stroke_width = $("#polygon-stroke-width").val('');
             addSuccessMessage('Layer Style Set Successfully!');
         }
     };
@@ -69,7 +73,7 @@ var LIBRARY_OBJECT = (function() {
         var polygon_stroke_width = $("#polygon-stroke-width").val();
 
 
-        if (layer == "") {
+        if (layer === "") {
             addErrorMessage("Layer name cannot be empty!");
             return false;
         } else {
@@ -81,9 +85,9 @@ var LIBRARY_OBJECT = (function() {
         var submit_button_html = submit_button.html();
         submit_button.text('Setting Style...');
         var data = {"layer": layer, "point_fill": point_fill,
-                    "polygon_fill": polygon_fill, "polygon_stroke": polygon_stroke,
-                    "point_size": point_size, "point_symbology": point_symbology,
-                    "polygon_opacity": polygon_opacity, "polygon_stroke_width": polygon_stroke_width};
+            "polygon_fill": polygon_fill, "polygon_stroke": polygon_stroke,
+            "point_size": point_size, "point_symbology": point_symbology,
+            "polygon_opacity": polygon_opacity, "polygon_stroke_width": polygon_stroke_width};
         var xhr = ajax_update_database("submit", data); //Submitting the data through the ajax function, see main.js for the helper function.
         xhr.done(function (return_data) { //Reset the form once the data is added successfully
             if ("success" in return_data) {

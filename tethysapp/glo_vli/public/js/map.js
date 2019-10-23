@@ -211,6 +211,38 @@ var LIBRARY_OBJECT = (function() {
         if(layer_type === 'wms' || layer_type==='dbms') {
             var wms_url = current_layer.getSource().getGetFeatureInfoUrl(evt.coordinate, viewResolution, view.getProjection(), {'INFO_FORMAT': 'application/json'}); //Get the wms url for the clicked point
         }
+        if (layer_type==='wms') {
+            //Retrieving the details for clicked point via the url
+            $.ajax({
+                type: "GET",
+                url: wms_url,
+                dataType: 'json',
+                success: function (result) {
+                    var lname = current_layer.get('title');
+                    var attr_text_html = '';
+                    var feature = result["features"][0];
+                    var prop = feature["properties"];
+                    $.each(prop, function (key, val) {
+                        if (key !== 'geometry') {
+                            attr_text_html += '<tr><td><span>'+key+':' +val+'</span></td></tr>'
+                        }
+                    });
+
+                    popup_content = '<table class="table"><tr class="bg-primary"><td>Layer Name: '+lname+'</td></tr>'+attr_text_html;
+
+                    $(element).popover({
+                        'placement': 'top',
+                        'html': true,
+                        //Dynamically Generating the popup content
+                        'content': popup_content
+                    });
+
+                    $(element).popover('show');
+                    $(element).next().css('cursor', 'text');
+
+                }
+            })
+        }
         if (layer_type==='dbms') {
             //Retrieving the details for clicked point via the url
             $.ajax({
@@ -377,6 +409,30 @@ var LIBRARY_OBJECT = (function() {
                     visible:false
                 });
                 map.addLayer(vector);
+            }else{
+
+                var wms_url = lyrs.url.split('|')[0];
+                var wms_layers = lyrs.url.split('|')[1];
+                var wms_legend_url = lyrs.legend_url;
+                wms_source = new ol.source.TileWMS({
+                    url: wms_url,
+                    params: {
+                        'LAYERS': wms_layers,
+                        'TILED': true
+                    },
+                    // serverType: 'geoserver',
+                    crossOrigin: 'Anonymous'
+                });
+                //
+                wms_layer = new ol.layer.Tile({
+                    source: wms_source,
+                    name:lyrs.layer_name,
+                    visible:false,
+                    title: lyrs.layer_name,
+                    layer_type: 'wms'
+                });
+                //
+                map.addLayer(wms_layer);
             }
 
         });

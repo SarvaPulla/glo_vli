@@ -459,9 +459,15 @@ def add_endpoint(request):
                                  name='endpoint-type',
                                  attributes={'id': 'endpoint-type'},
                                  multiple=False,
-                                 options=[('wms', 'wms'),
-                                          ('wfs', 'wfs')]
+                                 options=[('wfs', 'wfs'), ('wms', 'wms')]
                                  )
+
+    wms_text_input = TextInput(display_text='WMS Layer Name',
+                               name='wms-text-input',
+                               placeholder='e.g.: cite:qpf24hr_day1_latest',
+                               attributes={'id': 'wms-text-input'},
+                               classes='wms_layer hidden'
+                               )
 
     add_button = Button(display_text='Add Endpoint',
                         icon='glyphicon glyphicon-plus',
@@ -473,6 +479,7 @@ def add_endpoint(request):
     context = {"name_input": name_input,
                "endpoint_input": endpoint_input,
                "endpoint_type": endpoint_type,
+               "wms_text_input": wms_text_input,
                "add_button": add_button}
 
     return render(request, 'glo_vli/add_endpoint.html', context)
