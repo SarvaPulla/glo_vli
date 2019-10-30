@@ -106,11 +106,16 @@ def get_endpoint_options():
         endpoint_options['url'] = opt.url
 
         if opt.layer_type == 'wms':
-            url_obj = opt.url.split('|')
-            wms_url = url_obj[0]
-            wms_layer = url_obj[1]
+            wms_url = opt.url
+            meta_dict = opt.meta_dict
+            wms_layer = meta_dict['LAYERS']
             legend_url = wms_url + common_req_str + "&LAYER=" + wms_layer
             endpoint_options['legend_url'] = legend_url
+            endpoint_options['meta'] = meta_dict
+
+        if opt.layer_type == 'wfs':
+            meta_dict = opt.meta_dict
+            endpoint_options['meta'] = meta_dict
 
         endpoints_list.append(endpoint_options)
     return endpoints_list

@@ -455,19 +455,31 @@ def add_endpoint(request):
                                attributes={'id': 'endpoint-input'},
                                )
 
-    endpoint_type =  SelectInput(display_text='Endpoint Type',
-                                 name='endpoint-type',
-                                 attributes={'id': 'endpoint-type'},
-                                 multiple=False,
-                                 options=[('wfs', 'wfs'), ('wms', 'wms')]
+    endpoint_type = SelectInput(display_text='Endpoint Type',
+                                name='endpoint-type',
+                                attributes={'id': 'endpoint-type'},
+                                multiple=False,
+                                options=[('wfs', 'wfs'), ('wms', 'wms')]
+                                )
+
+    wms_layers_input = TextInput(display_text='WMS Layer Name',
+                                 name='wms-layers-input',
+                                 placeholder='e.g.: cite:qpf24hr_day1_latest',
+                                 attributes={'id': 'wms-layers-input'},
+                                 classes='wms_layer hidden'
                                  )
 
-    wms_text_input = TextInput(display_text='WMS Layer Name',
-                               name='wms-text-input',
-                               placeholder='e.g.: cite:qpf24hr_day1_latest',
-                               attributes={'id': 'wms-text-input'},
-                               classes='wms_layer hidden'
-                               )
+    fill_opacity = TextInput(display_text='Fill Opacity',
+                             name='fill-opacity',
+                             placeholder='e.g.: 0.7. Goes from 0 to 1.',
+                             attributes={'id': 'fill-opacity'},
+                             )
+
+    stroke_width = TextInput(display_text='Stroke Width',
+                             name='stroke-width',
+                             placeholder='e.g.: 2. The thickness of the fill stroke.',
+                             attributes={'id': 'stroke-width'},
+                             )
 
     add_button = Button(display_text='Add Endpoint',
                         icon='glyphicon glyphicon-plus',
@@ -479,7 +491,9 @@ def add_endpoint(request):
     context = {"name_input": name_input,
                "endpoint_input": endpoint_input,
                "endpoint_type": endpoint_type,
-               "wms_text_input": wms_text_input,
+               "wms_layers_input": wms_layers_input,
+               "fill_opacity": fill_opacity,
+               "stroke_width": stroke_width,
                "add_button": add_button}
 
     return render(request, 'glo_vli/add_endpoint.html', context)

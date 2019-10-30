@@ -83,14 +83,16 @@ class Endpoints(Base):
     layer_name = Column(String)
     layer_type = Column(String)
     url = Column(String)
+    meta_dict = Column(JSON)
 
-    def __init__(self, layer_name, layer_type, url):
+    def __init__(self, layer_name, layer_type, url, meta_dict):
         """
         Constructor for an endpoint
         """
         self.layer_name = layer_name
         self.layer_type = layer_type
         self.url = url
+        self.meta_dict = meta_dict
 
 
 def init_layer_db(engine, first_time):

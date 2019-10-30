@@ -621,9 +621,19 @@ def endpoint_add(request):
         layer_name = post_info.get('layer_name')
         layer_type = post_info.get('type')
         url = post_info.get('endpoint')
+        meta_dict = {}
 
         if layer_type == 'wfs':
-            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
+            fill = post_info.get('fill')
+            stroke = post_info.get('stroke')
+            opacity = post_info.get('opacity')
+            stroke_width = post_info.get('stroke_width')
+            meta_dict['fill'] = fill
+            meta_dict['stroke'] = stroke
+            meta_dict['opacity'] = opacity
+            meta_dict['stroke_width'] = stroke_width
+
+            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url, meta_dict=meta_dict)
             session.add(endpoint)
             session.commit()
             session.close()
@@ -631,10 +641,11 @@ def endpoint_add(request):
             json_obj["success"] = "success"
 
         if layer_type == 'wms':
-            wms_layer_name = post_info.get('wms_text_input')
-            url = url+'|'+wms_layer_name
+            wms_layer_name = post_info.get('wms_layers_input')
+            url = url
+            meta_dict['LAYERS'] = wms_layer_name
 
-            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url)
+            endpoint = Endpoints(layer_name=layer_name, layer_type=layer_type, url=url, meta_dict=meta_dict)
             session.add(endpoint)
             session.commit()
             session.close()

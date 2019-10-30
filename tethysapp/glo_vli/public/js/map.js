@@ -30,6 +30,7 @@ var LIBRARY_OBJECT = (function() {
         popup,
         popup_content,
         public_interface,				// Object returned by the module
+        view,
         wms_layer,
         wms_source;
 
@@ -132,15 +133,17 @@ var LIBRARY_OBJECT = (function() {
 
         layers = [base_map, base_map2, base_map3, counties_layer];
 
+        view = new ol.View({
+            center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
+            zoom: 9,
+            minZoom: 2,
+            maxZoom: 18
+        });
         map = new ol.Map({
             target: 'map',
-            view: new ol.View({
-                center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
-                zoom: 9,
-                minZoom: 2,
-                maxZoom: 18
-            }),
-            layers: layers
+            view:view,
+            layers: layers,
+            moveTolerance: 10
         });
 
         element = document.getElementById('popup');
@@ -355,6 +358,7 @@ var LIBRARY_OBJECT = (function() {
                 get_popup(evt);
             }
         });
+
     };
 
 
@@ -392,6 +396,21 @@ var LIBRARY_OBJECT = (function() {
         });
         $.each(endpoint_options, function(lyr_key, lyrs){
             if(lyrs.layer_type==='wfs'){
+
+                var s_fill = lyrs.meta['fill'];
+                var stroke_width = lyrs.meta['stroke_width'];
+                var stroke_color = lyrs.meta['stroke_color'];
+                var featureStyle = new ol.style.Style({
+                    fill: new ol.style.Fill({
+                        color: "#"+s_fill
+                    }),
+                    stroke: new ol.style.Stroke({
+                        color: "#"+stroke_color,
+                        width: stroke_width,
+                        lineCap: 'round'
+                    })
+                });
+
                 var vectorSource = new ol.source.Vector({
                     format: new ol.format.GeoJSON(),
                     crossOrigin: 'Anonymous',
@@ -399,20 +418,21 @@ var LIBRARY_OBJECT = (function() {
                         return lyrs.url+'&srsname=EPSG:3857&' +
                             'bbox=' + extent.join(',') + ',EPSG:3857';
                     },
-                    strategy: ol.loadingstrategy.bbox,
+                    strategy: ol.loadingstrategy.bbox
                 });
 
                 var vector = new ol.layer.Vector({
                     source: vectorSource,
                     title: lyrs.layer_name,
                     layer_type: lyrs.layer_type,
-                    visible:false
+                    visible:false,
+                    style: featureStyle
                 });
                 map.addLayer(vector);
             }else{
 
-                var wms_url = lyrs.url.split('|')[0];
-                var wms_layers = lyrs.url.split('|')[1];
+                var wms_url = lyrs.url;
+                var wms_layers = lyrs.meta_dict['LAYERS'];
                 var wms_legend_url = lyrs.legend_url;
                 wms_source = new ol.source.TileWMS({
                     url: wms_url,

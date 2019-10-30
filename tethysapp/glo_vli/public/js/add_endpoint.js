@@ -65,7 +65,12 @@ var LIBRARY_OBJECT = (function() {
         var type = $("#endpoint-type option:selected").val();
         var endpoint = $("#endpoint-input").val();
         var layer_name = $("#name-input").val();
-        var wms_text_input = $("#wms-text-input").val();
+        var wms_layers_input = $("#wms-layers-input").val();
+        var fill = $("#polygon-fill").val();
+        var stroke = $("#polygon-stroke").val();
+        var opacity = $("#fill-opacity").val();
+        var stroke_width = $("#stroke-width").val();
+
         if(endpoint === ""){
             addErrorMessage("Please enter a REST endpoint");
             return false;
@@ -73,7 +78,7 @@ var LIBRARY_OBJECT = (function() {
             reset_alert();
         }
         if(type==='wms'){
-            if(wms_text_input === ""){
+            if(wms_layers_input === ""){
                 addErrorMessage("Please enter a WMS Layer");
                 return false;
             }else{
@@ -81,7 +86,8 @@ var LIBRARY_OBJECT = (function() {
             }
         }
 
-        var xhr = ajax_update_database("submit", {"type": type, "endpoint": endpoint, "layer_name": layer_name, "wms_text_input": wms_text_input});
+        var xhr = ajax_update_database("submit", {"type": type, "endpoint": endpoint, "layer_name": layer_name, "wms_layers_input": wms_layers_input,
+        "opacity": opacity, "fill": fill, "stroke": stroke, "stroke_width": stroke_width});
         xhr.done(function(return_data){
             if("success" in return_data){
                 reset_form(return_data);
@@ -124,10 +130,12 @@ var LIBRARY_OBJECT = (function() {
             console.log(layer_type);
             if(layer_type === 'wms'){
                 $('.wms_layer').removeClass('hidden');
+                $('.wfs_layer').addClass('hidden');
             }else{
-                $('.wms_layer').removeClass('hidden');
+                $('.wms_layer').addClass('hidden');
+                $('.wfs_layer').removeClass('hidden');
             }
-        });
+        }).change();
     });
 
     return public_interface;
