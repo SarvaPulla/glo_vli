@@ -155,8 +155,6 @@ def get_legend_options():
             legend_url = geoserver_wms_url + common_req_str + "&LAYER=glo_vli:" + type + "&STYLE=" + style
             legend_options.append((legend_url, style))
 
-
-
     return legend_options
 
 
@@ -478,4 +476,52 @@ def get_polygon_style_xml(polygon_fill, polygon_stroke, polygon_opacity, polygon
             shutil.rmtree(temp_dir)
 
     return sld_string
+
+
+def get_county_layers(county):
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    points_query = session.query(Points).filter(Points.county == county).statement
+    points_gdf = gpd.read_postgis(sql=points_query,
+                                  con=session.bind,
+                                  geom_col='geometry')
+    points_json = points_gdf.to_json()
+
+    polygons_query = session.query(Polygons).filter(Polygons.county == county).statement
+    polygons_gdf = gpd.read_postgis(sql=polygons_query,
+                                    con=session.bind,
+                                    geom_col='geometry')
+    polygons_json = polygons_gdf.to_json()
+
+    session.close()
+    return points_json, polygons_json
+
+
+def get_layer_points(layer):
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    query = session.query(Points).filter(Points.layer_name == layer).statement
+    points_gdf = gpd.read_postgis(sql=query,
+                                  con=session.bind,
+                                  geom_col='geometry')
+    points_json = points_gdf.to_json()
+
+    return points_json
+
+
+def get_layer_polygons(layer):
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    query = session.query(Polygons).filter(Polygons.layer_name == layer).statement
+    polygons_gdf = gpd.read_postgis(sql=query,
+                                    con=session.bind,
+                                    geom_col='geometry')
+    polygons_json = polygons_gdf.to_json()
+
+    return polygons_json
+
 

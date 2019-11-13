@@ -1,5 +1,6 @@
 from tethys_sdk.base import TethysAppBase, url_map_maker
-from tethys_sdk.app_settings import PersistentStoreDatabaseSetting
+from tethys_sdk.app_settings import PersistentStoreDatabaseSetting, PersistentStoreConnectionSetting
+
 
 class GloVli(TethysAppBase):
     """
@@ -154,6 +155,36 @@ class GloVli(TethysAppBase):
                 url='glo-vli/delete-endpoint/submit',
                 controller='glo_vli.controllers_ajax.endpoint_delete'
             ),
+            UrlMap(
+                name='get-layers-info',
+                url='glo-vli/api/get-layers-info',
+                controller='glo_vli.api.get_layers_info'
+            ),
+            UrlMap(
+                name='get-layers-by-county',
+                url='glo-vli/api/get-layers-by-county',
+                controller='glo_vli.api.get_layers_by_county'
+            ),
+            UrlMap(
+                name='get-points-by-county',
+                url='glo-vli/api/get-points-by-county',
+                controller='glo_vli.api.get_points_by_county'
+            ),
+            UrlMap(
+                name='get-polygons-by-county',
+                url='glo-vli/api/get-polygons-by-county',
+                controller='glo_vli.api.get_polygons_by_county'
+            ),
+            UrlMap(
+                name='get-points-by-layer',
+                url='glo-vli/api/get-points-by-layer',
+                controller='glo_vli.api.get_points_by_layer'
+            ),
+            UrlMap(
+                name='get-polygons-by-layer',
+                url='glo-vli/api/get-polygons-by-layer',
+                controller='glo_vli.api.get_polygons_by_layer'
+            ),
         )
 
         return url_maps
@@ -169,6 +200,11 @@ class GloVli(TethysAppBase):
                 initializer='glo_vli.model.init_layer_db',
                 required=True,
                 spatial=True
+            ),
+            PersistentStoreConnectionSetting(
+                name='primary',
+                description='Connection to Layers DB',
+                required=True
             ),
         )
 

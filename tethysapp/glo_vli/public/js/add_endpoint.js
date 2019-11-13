@@ -49,7 +49,12 @@ var LIBRARY_OBJECT = (function() {
     reset_form = function(result){
         if("success" in result){
             $("#endpoint-input").val('');
-            $("#wms-text-input").val('');
+            $("#wms-layers-input").val('');
+            $("#name-input").val('');
+            $("#polygon-fill").val('');
+            $("#polygon-stroke").val('');
+            $("#fill-opacity").val('');
+            $("#stroke-width").val('');
             addSuccessMessage('Endpoint Added Successfully!');
         }
     };
@@ -87,7 +92,7 @@ var LIBRARY_OBJECT = (function() {
         }
 
         var xhr = ajax_update_database("submit", {"type": type, "endpoint": endpoint, "layer_name": layer_name, "wms_layers_input": wms_layers_input,
-        "opacity": opacity, "fill": fill, "stroke": stroke, "stroke_width": stroke_width});
+            "opacity": opacity, "fill": fill, "stroke": stroke, "stroke_width": stroke_width});
         xhr.done(function(return_data){
             if("success" in return_data){
                 reset_form(return_data);

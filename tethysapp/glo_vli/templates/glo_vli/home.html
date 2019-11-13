@@ -170,8 +170,9 @@
 <div id="map" class="map"></div>
 <div id="popup" class="popup"></div>
 <div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
+  <b style="color: black;">Legend</b>
   {% for opt in legend_options reversed%}
-  <img src="{{opt.0}}" class="{{opt.1}}" style="display:block;">
+  <img src="{{opt.0}}" class="{{opt.1}} hidden" style="display:block;" >
   {% endfor %}
 </div>
 {% endblock %}

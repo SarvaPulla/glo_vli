@@ -312,7 +312,7 @@ def add_new_layer(request):
                                      original=True,
                                      options=layer_list,)
 
-    attributes_button = Button(display_text='Get Shapefile Attributes',
+    attributes_button = Button(display_text='Get Attributes',
                                icon='glyphicon glyphicon-plus',
                                style='primary',
                                name='submit-get-attributes',

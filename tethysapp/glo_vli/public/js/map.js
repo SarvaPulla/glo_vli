@@ -22,6 +22,7 @@ var LIBRARY_OBJECT = (function() {
         counties_layer,
         element,
         endpoint_options,
+        geolocation,
         gs_wms_url,
         layers,
         layersDict,
@@ -165,6 +166,8 @@ var LIBRARY_OBJECT = (function() {
             });
 
         map.addControl(switcher);
+
+
 
 
     };
@@ -365,6 +368,7 @@ var LIBRARY_OBJECT = (function() {
     add_vli_layers = function(){
         $.each(layer_options, function(lyr_key, lyrs){
             lyrs.forEach(function(lyr, i){
+                var visible = false;
                 var gs_layer = 'glo_vli:' + lyr_key;
                 var cql_str = 'layer_name=' + '\'' + lyr + '\' AND approved=True';
                 var style = lyr.replace(/ /g,"_").toLowerCase();
@@ -384,7 +388,7 @@ var LIBRARY_OBJECT = (function() {
                 wms_layer = new ol.layer.Tile({
                     source: wms_source,
                     name:lyr,
-                    visible:false,
+                    visible:visible,
                     title: lyr,
                     layer_type: 'dbms'
                 });
@@ -487,6 +491,18 @@ var LIBRARY_OBJECT = (function() {
     // the DOM tree finishes loading
     $(function() {
         init_all();
+        $("#help-modal").modal('show');
+        geolocation = new ol.Geolocation({
+            projection: view.getProjection(),
+            tracking: true
+        });
+
+
+        geolocation.once('change', function() {
+            view.setCenter(geolocation.getPosition());
+            view.setResolution(12);
+        });
+
 
         $("#select-county").change(function() {
             var counties = ($("#select-county").val());

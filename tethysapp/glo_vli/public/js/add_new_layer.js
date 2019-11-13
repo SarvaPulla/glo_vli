@@ -54,7 +54,7 @@ var LIBRARY_OBJECT = (function() {
             $("#layer-input").val('');
             $("#shp-upload-input").val('');
             $(".attributes").addClass('hidden');
-            addSuccessMessage('Shapefile Upload Complete!');
+            addSuccessMessage('Layer Upload Complete!');
         }
     };
 
@@ -73,7 +73,7 @@ var LIBRARY_OBJECT = (function() {
         var layer;
         var add_option = $("#add-new-select option:selected").val();
 
-        if(add_option=='True'){
+        if(add_option==='True'){
             layer = $("#layer-text-input").val();
         }else{
             layer =  $("#layer-select-input option:selected").val();
@@ -81,7 +81,7 @@ var LIBRARY_OBJECT = (function() {
         var shapefiles = $("#shp-upload-input")[0].files;
         var attributes = $("#select_attributes").val();
 
-        if(layer == ""){
+        if(layer === ""){
             addErrorMessage("Layer name cannot be empty!");
             return false;
         }else{
