@@ -185,6 +185,16 @@ class GloVli(TethysAppBase):
                 url='glo-vli/api/get-polygons-by-layer',
                 controller='glo_vli.api.get_polygons_by_layer'
             ),
+            UrlMap(
+                name='get-points-by-geometry',
+                url='glo-vli/api/get-points-by-geometry',
+                controller='glo_vli.api.get_points_by_geom'
+            ),
+            UrlMap(
+                name='get-polygons-by-geometry',
+                url='glo-vli/api/get-polygons-by-geometry',
+                controller='glo_vli.api.get_polygons_by_geom'
+            ),
         )
 
         return url_maps

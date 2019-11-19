@@ -29,7 +29,9 @@ import json
 from .utils import get_layer_options, \
     get_county_layers, \
     get_layer_points,\
-    get_layer_polygons
+    get_layer_polygons,\
+    get_points_geom,\
+    get_polygons_geom
 
 
 def get_layers_info(request):
@@ -116,4 +118,33 @@ def get_polygons_by_layer(request):
         json_obj['success'] = 'success'
         json_obj['polygons'] = json.loads(polygons_json)
         return JsonResponse(json_obj)
+
+
+def get_points_by_geom(request):
+    json_obj = {}
+    if request.method == 'GET':
+        geometry = None
+
+        if request.GET.get('geometry'):
+            geometry = request.GET['geometry']
+
+        points_json = get_points_geom(geometry)
+        json_obj['success'] = 'success'
+        json_obj['points'] = json.loads(points_json)
+        return JsonResponse(json_obj)
+
+
+def get_polygons_by_geom(request):
+    json_obj = {}
+    if request.method == 'GET':
+        geometry = None
+
+        if request.GET.get('geometry'):
+            geometry = request.GET['geometry']
+
+        polygons_json = get_polygons_geom(geometry)
+        json_obj['success'] = 'success'
+        json_obj['polygons'] = json.loads(polygons_json)
+        return JsonResponse(json_obj)
+
 

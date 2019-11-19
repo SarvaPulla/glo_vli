@@ -3,6 +3,7 @@ import geopandas as gpd
 import os
 from geoalchemy2 import Geometry, WKTElement
 from sqlalchemy import *
+from sqlalchemy import func
 from .app import GloVli as app
 from .model import Points, Polygons, Endpoints
 import requests
@@ -524,4 +525,40 @@ def get_layer_polygons(layer):
 
     return polygons_json
 
+
+def get_points_geom(geom):
+
+    gdf = gpd.read_file(geom)
+    geometry = gdf.geometry.values[0]
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    int_geom = (wkt.dumps(geometry))
+    query = session.query(Points).filter(Points.geometry.intersects(int_geom)).statement
+
+    points_gdf = gpd.read_postgis(sql=query,
+                                  con=session.bind,
+                                  geom_col='geometry')
+    points_json = points_gdf.to_json()
+
+    session.close()
+    return points_json
+
+
+def get_polygons_geom(geom):
+
+    gdf = gpd.read_file(geom)
+    geometry = gdf.geometry.values[0]
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    int_geom = (wkt.dumps(geometry))
+    query = session.query(Polygons).filter(Polygons.geometry.intersects(int_geom)).statement
+
+    polygons_gdf = gpd.read_postgis(sql=query,
+                                    con=session.bind,
+                                    geom_col='geometry')
+
+    polygons_json = polygons_gdf.to_json()
+
+    session.close()
+    return polygons_json
 
