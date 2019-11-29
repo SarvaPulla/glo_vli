@@ -7,7 +7,7 @@ from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
     get_shapefile_attributes, get_layer_options, get_point_style_xml, \
-    get_polygon_style_xml
+    get_polygon_style_xml, get_polygons_geom, get_points_geom
 from shapely.geometry import shape
 import os
 import json
@@ -17,7 +17,9 @@ import math
 import requests
 import json
 from urllib.parse import urljoin
-from .config import geoserver_rest_url, geoserver_credentials
+from .config import geoserver_rest_url, \
+    geoserver_credentials, \
+    geoserver_wfs_url
 
 
 @user_passes_test(user_permission_test)
@@ -261,7 +263,6 @@ def polygon_update(request):
         polygon_attribute = post_info.get('polygon_attribute')
         polygon_approved = json.loads(polygon_approved)
 
-
         # check data
         if not polygon_id:
             return JsonResponse({'error': "Missing input data."})
@@ -402,6 +403,34 @@ def get_meta_file(request):
             response['X-Sendfile'] = smart_str(f_path)
             return response
     raise Http404
+
+
+def download_layers(request):
+    points_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
+        f'&typeName=glo_vli:points&outputFormat=shape-zip'
+    polygons_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
+        f'&typeName=glo_vli:polygons&outputFormat=shape-zip'
+
+    response = {"success": "success",
+                "points_url": points_url,
+                "polygons_url": polygons_url}
+
+    return JsonResponse(response)
+
+
+def download_interaction(request):
+    json_obj = {}
+
+    if request.is_ajax():
+        info = request.POST
+        feature = info.get('feature')
+        point_features = get_points_geom(feature)
+        polygon_features = get_polygons_geom(feature)
+        json_obj['points'] = json.loads(point_features)
+        json_obj['polygons'] = json.loads(polygon_features)
+        json_obj["success"] = "success"
+
+        return JsonResponse(json_obj)
 
 
 @user_passes_test(user_permission_test)

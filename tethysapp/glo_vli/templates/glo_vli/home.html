@@ -44,6 +44,20 @@
 
 {% block app_content %}
 <style>
+  .download-layers{
+    top: 65px;
+    left: .5em;
+  }
+  .ol-touch .download-layers{
+    top: 80px;
+  }
+  .interaction-control{
+    top: 90px;
+    left: .5em;
+  }
+  .ol-touch .interaction-control{
+    top: 105px;
+  }
   #map {
     height: 100%;
     width: 100%;
@@ -148,19 +162,19 @@
     -webkit-border-radius:5px;
     border-radius:5px;
   }
-  	.map-view-legend {
-		bottom: 25px;
-		left: 3px;
-		width: 250px;
-		max-height: 90%;
-		overflow-y: auto;
-		margin: 5px;
-		color:white;
-		background: white;
-		border: 1px #ddd solid;
-		z-index: 999;
-	}
-	.map-view-legend:hover{background-color:rgba(255, 255, 255, 0.7);!important;color: #fff9fb;}
+  .map-view-legend {
+    bottom: 25px;
+    left: 3px;
+    width: 250px;
+    max-height: 90%;
+    overflow-y: auto;
+    margin: 5px;
+    color:white;
+    background: white;
+    border: 1px #ddd solid;
+    z-index: 999;
+  }
+  .map-view-legend:hover{background-color:rgba(255, 255, 255, 0.7);!important;color: #fff9fb;}
   .ol-scale-line{
     background: #286090;
   }
@@ -195,6 +209,50 @@
       <div class="modal-footer">
         <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
         <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
+      </div>
+    </div>
+  </div>
+</div>
+<form id="modalUpload" class="modal fade" action="upload-shp/" method="POST" role="dialog">
+    {% csrf_token %}
+    <div class="modal-dialog">
+        <!-- Modal content-->
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal">&times;</button>
+                <h4 class="modal-title">Upload Shapefile</h4>
+            </div>
+            <div class="modal-body">
+                <div class="form-group shp_upload">
+                    <label class="control-label" for="shp-upload-input">Multiple Files are allowed</label>
+                    <input id="shp-upload-input" name="shp-upload-input" type="file" multiple>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="button-group">
+                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                    <button type="button" id="btn-add-shp" class="btn btn-default">Add</button>
+                </div>
+            </div>
+        </div>
+        <!--End modal content-->
+    </div>
+</form>
+<div class="modal fade" id="interaction-modal" tabindex="-1" role="dialog" aria-labelledby="interaction-modal-label">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h5 class="modal-title" id="interaction-modal-label">Map Interaction Modal</h5>
+      </div>
+      <div class="modal-body">
+        <label>Map Interaction</label>
+        <a id="point-download" download="point_features.json" hidden>Point Downloads</a>
+        <select id="types" class="selectpicker" data-width="fit">
+          <option value="None">None</option>
+          <option value="Polygon">Polygon</option>
+<!--          <option value="Upload">Upload Shapefile</option>-->
+        </select>
       </div>
     </div>
   </div>

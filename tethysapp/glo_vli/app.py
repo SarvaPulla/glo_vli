@@ -195,6 +195,16 @@ class GloVli(TethysAppBase):
                 url='glo-vli/api/get-polygons-by-geometry',
                 controller='glo_vli.api.get_polygons_by_geom'
             ),
+            UrlMap(
+                name='dowloand-layers',
+                url='glo-vli/download-layers',
+                controller='glo_vli.controllers_ajax.download_layers'
+            ),
+            UrlMap(
+                name='download-interaction',
+                url='glo-vli/download-interaction',
+                controller='glo_vli.controllers_ajax.download_interaction'
+            ),
         )
 
         return url_maps
@@ -210,11 +220,6 @@ class GloVli(TethysAppBase):
                 initializer='glo_vli.model.init_layer_db',
                 required=True,
                 spatial=True
-            ),
-            PersistentStoreConnectionSetting(
-                name='primary',
-                description='Connection to Layers DB',
-                required=True
             ),
         )
 

@@ -17,7 +17,8 @@ var LIBRARY_OBJECT = (function() {
     /************************************************************************
      *                      MODULE LEVEL / GLOBAL VARIABLES
      *************************************************************************/
-    var current_layer,
+    var $btnUpload,
+        current_layer,
         counties_source,
         counties_layer,
         element,
@@ -28,9 +29,13 @@ var LIBRARY_OBJECT = (function() {
         layersDict,
         layer_options,
         map,
+        $modalUpload,
         popup,
         popup_content,
+        proj_coords,
         public_interface,				// Object returned by the module
+        shpSource,
+        shpLayer,
         view,
         wms_layer,
         wms_source;
@@ -58,6 +63,8 @@ var LIBRARY_OBJECT = (function() {
         layer_options = JSON.parse(layer_options);
         endpoint_options = $meta_element.attr('data-endpoint-options');
         endpoint_options = JSON.parse(endpoint_options);
+        $modalUpload = $("#modalUpload");
+        $btnUpload = $("#btn-add-shp");
     };
 
     init_map = function(){
@@ -131,8 +138,37 @@ var LIBRARY_OBJECT = (function() {
             source: counties_source
         });
 
+        //Creating an empty source and layer to store the shapefile geojson object
+        shpSource = new ol.source.Vector();
+        shpLayer = new ol.layer.Vector({
+            source: shpSource
+        });
 
-        layers = [base_map, base_map2, base_map3, counties_layer];
+        //Creating an empty source and layer to store the point/polygon features.
+        var source = new ol.source.Vector({
+            wrapX: false
+        });
+        var vector_layer = new ol.layer.Vector({
+            name: 'my_vectorlayer',
+            source: source,
+            style: new ol.style.Style({
+                fill: new ol.style.Fill({
+                    color: 'rgba(255, 255, 255, 0.2)'
+                }),
+                stroke: new ol.style.Stroke({
+                    color: '#ffcc33',
+                    width: 2
+                }),
+                image: new ol.style.Circle({
+                    radius: 7,
+                    fill: new ol.style.Fill({
+                        color: '#ffcc33'
+                    })
+                })
+            })
+        });
+
+        layers = [base_map, base_map2, base_map3, vector_layer, shpLayer, counties_layer];
 
         view = new ol.View({
             center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
@@ -166,6 +202,161 @@ var LIBRARY_OBJECT = (function() {
             });
 
         map.addControl(switcher);
+
+        var download = document.createElement('button');
+        download.innerHTML = '<span class="glyphicon glyphicon-download-alt"></span>';
+
+        var handleDownloadLayers = function(e) {
+            var xhr = ajax_update_database("download-layers", {});
+
+            xhr.done(function(return_data){
+                var points_url = return_data['points_url'];
+                var polygons_url = return_data['polygons_url'];
+                window.open(points_url);
+                window.open(polygons_url);
+            });
+        };
+
+        download.addEventListener('click', handleDownloadLayers, false);
+
+        var div_element = document.createElement('div');
+        div_element.className = 'download-layers ol-unselectable ol-control';
+        div_element.appendChild(download);
+
+        var DownloadLayersControl = new ol.control.Control({
+            element: div_element
+        });
+        map.addControl(DownloadLayersControl);
+
+        var interact = document.createElement('button');
+        interact.innerHTML = '<span class="glyphicon glyphicon-pencil"></span>';
+
+        var handleInteract = function(e) {
+            $("#interaction-modal").modal('show');
+        };
+
+        interact.addEventListener('click', handleInteract, false);
+
+        var int_element = document.createElement('div');
+        int_element.className = 'interaction-control ol-unselectable ol-control';
+        int_element.appendChild(interact);
+
+        var InteractLayersControl = new ol.control.Control({
+            element: int_element
+        });
+        map.addControl(InteractLayersControl);
+
+        var lastFeature, draw, featureType;
+
+        //Remove the last feature before drawing a new one
+        var removeLastFeature = function () {
+            if (lastFeature) source.removeFeature(lastFeature);
+        };
+
+        //Add the point/polygon interaction to the map
+        var addInteraction = function (geomtype) {
+            var typeSelect = document.getElementById('types');
+            var value = typeSelect.value;
+            $('#data').val('');
+            if (value !== 'None') {
+                if (draw)
+                    map.removeInteraction(draw);
+
+                draw = new ol.interaction.Draw({
+                    source: source,
+                    type: geomtype
+                });
+
+
+                map.addInteraction(draw);
+            }
+            if (featureType === 'Point'|| featureType === 'Polygon') {
+
+                // draw.on('drawend', function (e) {
+                //     removeLastFeature();
+                //     lastFeature = e.feature;
+                // });
+                draw.on('drawend', function (e) {
+                    lastFeature = e.feature;
+
+                });
+
+                draw.on('drawstart', function (e) {
+                    source.clear();
+                });
+
+            }
+
+
+        };
+
+        //Extracting information from the saved json object data
+        vector_layer.getSource().on('addfeature', function(event){
+            var feature_json = saveData();
+            var parsed_feature = JSON.parse(feature_json);
+            var feature_type = parsed_feature["features"][0]["geometry"]["type"];
+
+            if (feature_type === 'Polygon'){
+                var data = {"feature": feature_json};
+                var xhr = ajax_update_database("download-interaction", data);
+
+                xhr.done(function(return_data){
+                    // var point_download = document.getElementById('point-download');
+                    // point_download.href = 'data:text/json;charset=utf-8,'+return_data;
+                    var a = document.createElement("a");
+                    var file = new Blob([JSON.stringify(return_data)], {type: 'application/json'});
+                    a.href = URL.createObjectURL(file);
+                    a.download = 'features.json';
+                    a.click();
+                });
+            }
+        });
+
+        //Save the drawn feature as a json object
+        function saveData() {
+            // get the format the user has chosen
+            var data_type = 'GeoJSON',
+                // define a format the data shall be converted to
+                format = new ol.format[data_type](),
+                // this will be the data in the chosen format
+                data;
+            try {
+                // convert the data of the vector_layer into the chosen format
+                data = format.writeFeatures(vector_layer.getSource().getFeatures(),{
+                    dataProjection: 'EPSG:4326',
+                    featureProjection: 'EPSG:3857'
+                });
+            } catch (e) {
+                // at time of creation there is an error in the GPX format (18.7.2014)
+                $('#data').val(e.name + ": " + e.message);
+                return;
+            }
+            // $('#data').val(JSON.stringify(data, null, 4));
+            return data;
+
+        }
+
+        //Change the map based on the interaction type. Add/remove interaction accordingly.
+        $('#types').change(function (e) {
+            featureType = $(this).find('option:selected').val();
+            if(featureType == 'None'){
+                $('#data').val('');
+                map.removeInteraction(draw);
+                vector_layer.getSource().clear();
+                shpLayer.getSource().clear();
+            }else if(featureType=='Polygon'){
+                shpLayer.getSource().clear();
+                addInteraction(featureType);
+            }
+            else if(featureType =='Upload'){
+                vector_layer.getSource().clear();
+                shpLayer.getSource().clear();
+                map.removeInteraction(draw);
+                $("#interaction-modal").modal('hide');
+                $modalUpload.modal('show');
+
+            }
+        }).change();
 
 
 
@@ -346,7 +537,7 @@ var LIBRARY_OBJECT = (function() {
             }
             var pixel = map.getEventPixel(evt.originalEvent);
             var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3]){
+                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3] && layer !== layers[4] && layer !== layers[5]){
                     current_layer = layer;
                     return true;
                 }
@@ -492,16 +683,16 @@ var LIBRARY_OBJECT = (function() {
     $(function() {
         init_all();
         $("#help-modal").modal('show');
-        geolocation = new ol.Geolocation({
-            projection: view.getProjection(),
-            tracking: true
-        });
-
-
-        geolocation.once('change', function() {
-            view.setCenter(geolocation.getPosition());
-            view.setResolution(12);
-        });
+        // geolocation = new ol.Geolocation({
+        //     projection: view.getProjection(),
+        //     tracking: true
+        // });
+        //
+        //
+        // geolocation.once('change', function() {
+        //     view.setCenter(geolocation.getPosition());
+        //     view.setResolution(12);
+        // });
 
 
         $("#select-county").change(function() {
