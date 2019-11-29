@@ -141,7 +141,8 @@ var LIBRARY_OBJECT = (function() {
         //Creating an empty source and layer to store the shapefile geojson object
         shpSource = new ol.source.Vector();
         shpLayer = new ol.layer.Vector({
-            source: shpSource
+            source: shpSource,
+            displayInLayerSwitcher: false
         });
 
         //Creating an empty source and layer to store the point/polygon features.
@@ -151,6 +152,7 @@ var LIBRARY_OBJECT = (function() {
         var vector_layer = new ol.layer.Vector({
             name: 'my_vectorlayer',
             source: source,
+            displayInLayerSwitcher: false,
             style: new ol.style.Style({
                 fill: new ol.style.Fill({
                     color: 'rgba(255, 255, 255, 0.2)'
