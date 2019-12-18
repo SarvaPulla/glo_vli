@@ -91,18 +91,18 @@ var LIBRARY_OBJECT = (function() {
 
         layersDict = {};
 
+        // var base_map = new ol.layer.Tile({
+        //     name:'Base Map 1',
+        //     source: new ol.source.BingMaps({
+        //         key: '5TC0yID7CYaqv3nVQLKe~xWVt4aXWMJq2Ed72cO4xsA~ApdeyQwHyH_btMjQS1NJ7OHKY8BK-W-EMQMrIavoQUMYXeZIQOUURnKGBOC7UCt4',
+        //         imagerySet: 'AerialWithLabels' // Options 'Aerial', 'AerialWithLabels', 'Road'
+        //     }),
+        //     baseLayer:true,
+        //     title:"Bing",
+        //     visible:false
+        // });
         var base_map = new ol.layer.Tile({
             name:'Base Map 1',
-            source: new ol.source.BingMaps({
-                key: '5TC0yID7CYaqv3nVQLKe~xWVt4aXWMJq2Ed72cO4xsA~ApdeyQwHyH_btMjQS1NJ7OHKY8BK-W-EMQMrIavoQUMYXeZIQOUURnKGBOC7UCt4',
-                imagerySet: 'AerialWithLabels' // Options 'Aerial', 'AerialWithLabels', 'Road'
-            }),
-            baseLayer:true,
-            title:"Bing",
-            visible:false
-        });
-        var base_map2 = new ol.layer.Tile({
-            name:'Base Map 2',
             crossOrigin: 'anonymous',
             source: new ol.source.XYZ({
                 attributions: [attribution],
@@ -114,9 +114,20 @@ var LIBRARY_OBJECT = (function() {
             title: "World Imagery"
 
         });
+        var basemap_labels = new ol.layer.Tile({
+            name:'Base Map Labels',
+            crossOrigin: 'anonymous',
+            source: new ol.source.XYZ({
+                attributions: [attribution],
+                url: 'https://services.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer' +
+                    '/tile/{z}/{y}/{x}'
+            }),
+            visible:false,
+            title: "Boundary Labels"
 
-        var base_map3 = new ol.layer.Tile({
-            name:'Base Map 3',
+        });
+        var base_map2 = new ol.layer.Tile({
+            name:'Base Map 2',
             crossOrigin: 'anonymous',
             source: new ol.source.OSM(),
             baseLayer:true,
@@ -171,7 +182,7 @@ var LIBRARY_OBJECT = (function() {
             })
         });
 
-        layers = [base_map2, base_map3, vector_layer, shpLayer, counties_layer];
+        layers = [base_map, base_map2, basemap_labels, vector_layer, shpLayer, counties_layer];
 
         view = new ol.View({
             center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
@@ -330,6 +341,7 @@ var LIBRARY_OBJECT = (function() {
             var feature_type = parsed_feature["features"][0]["geometry"]["type"];
 
             if (feature_type === 'Polygon'){
+                $("#loading-modal").modal("show");
                 var data = {"feature": feature_json};
                 var xhr = ajax_update_database("download-interaction", data);
 
@@ -341,6 +353,7 @@ var LIBRARY_OBJECT = (function() {
                     a.href = URL.createObjectURL(file);
                     a.download = 'features.json';
                     a.click();
+                    $("#loading-modal").modal("hide");
                 });
             }
         });
@@ -570,7 +583,7 @@ var LIBRARY_OBJECT = (function() {
             }
             var pixel = map.getEventPixel(evt.originalEvent);
             var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3] && layer !== layers[4]){
+                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3] && layer !== layers[4]  && layer !== layers[5]){
                     current_layer = layer;
                     return true;
                 }
