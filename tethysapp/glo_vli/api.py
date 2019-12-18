@@ -31,7 +31,10 @@ from .utils import get_layer_options, \
     get_layer_points,\
     get_layer_polygons,\
     get_points_geom,\
-    get_polygons_geom
+    get_polygons_geom,\
+    get_polygons_csv,\
+    get_layer_csv,\
+    get_points_csv
 
 
 def get_layers_info(request):
@@ -147,4 +150,41 @@ def get_polygons_by_geom(request):
         json_obj['polygons'] = json.loads(polygons_json)
         return JsonResponse(json_obj)
 
+
+def download_points_csv(request):
+    if request.method == 'GET':
+        results = get_points_csv()
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=points.csv'
+
+        results.to_csv(path_or_buf=response)
+        return response
+
+
+def download_polygons_csv(request):
+    if request.method == 'GET':
+        results = get_polygons_csv()
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename=polygons.csv'
+
+        results.to_csv(path_or_buf=response)
+        return response
+
+
+def download_layer_csv(request):
+
+    if request.method == 'GET':
+        layer_name = None
+        layer_type = None
+        if request.GET.get('layer_name'):
+            layer_name = request.GET['layer_name']
+        if request.GET.get('layer_type'):
+            layer_type = request.GET['layer_type']
+
+        results = get_layer_csv(layer_name, layer_type)
+        response = HttpResponse(content_type='text/csv')
+        response['Content-Disposition'] = 'attachment; filename='+layer_name+'.csv'
+
+        results.to_csv(path_or_buf=response)
+        return response
 

@@ -7,7 +7,7 @@ from .app import GloVli
 from .utils import user_permission_test, process_meta_file, \
     get_point_county_name, get_polygon_county_name, process_shapefile, \
     get_shapefile_attributes, get_layer_options, get_point_style_xml, \
-    get_polygon_style_xml, get_polygons_geom, get_points_geom
+    get_polygon_style_xml, get_polygons_geom, get_points_geom, get_line_style_xml
 from shapely.geometry import shape
 import os
 import json
@@ -366,7 +366,6 @@ def get_popup_info(request):
 
     try:
 
-
         info = None
 
         if table == 'points':
@@ -406,16 +405,17 @@ def get_meta_file(request):
 
 
 def download_layers(request):
-    points_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
-        f'&typeName=glo_vli:points&outputFormat=shape-zip'
-    polygons_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
-        f'&typeName=glo_vli:polygons&outputFormat=shape-zip'
+    if request.is_ajax():
+        points_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
+            f'&typeName=glo_vli:points&outputFormat=shape-zip'
+        polygons_url = f'{geoserver_wfs_url}?service=WFS&version=1.0.0&request=GetFeature' \
+            f'&typeName=glo_vli:polygons&outputFormat=shape-zip'
 
-    response = {"success": "success",
-                "points_url": points_url,
-                "polygons_url": polygons_url}
+        response = {"success": "success",
+                    "points_url": points_url,
+                    "polygons_url": polygons_url}
 
-    return JsonResponse(response)
+        return JsonResponse(response)
 
 
 def download_interaction(request):
@@ -496,9 +496,8 @@ def points_tabulator(request):
     last_page = math.ceil(int(num_points) / int(size))
 
     # # Query DB for data store types
-    points = session.query(Points) \
-             .order_by(Points.id) \
-             [(page * size):((page+1) * size)]
+    points = session.query(Points).order_by(Points.id.desc()) \
+        [(page * size):((page+1) * size)]
 
     data_dict = []
 
@@ -539,9 +538,8 @@ def polygons_tabulator(request):
     last_page = math.ceil(int(num_polygons) / int(size))
 
     # # Query DB for data store types
-    polygons = session.query(Polygons) \
-             .order_by(Polygons.id) \
-             [(page * size):((page+1) * size)]
+    polygons = session.query(Polygons).order_by(Polygons.id.desc()) \
+        [(page * size):((page+1) * size)]
 
     data_dict = []
 
@@ -626,13 +624,25 @@ def layer_style_set(request):
             point_xml = get_point_style_xml(point_size, point_symbology, point_fill,
                                             layer_name, exists)
         if layer_type == 'polygons':
+            poly_type = post_info.get('poly_type')
+            if poly_type == 'Polygon':
+                polygon_fill = post_info.get('polygon_fill')
+                polygon_stroke = post_info.get('polygon_stroke')
+                polygon_opacity = post_info.get('polygon_opacity')
+                polygon_stroke_width = post_info.get('polygon_stroke_width')
+                polygon_xml = get_polygon_style_xml(polygon_fill, polygon_stroke, polygon_opacity,
+                                                    polygon_stroke_width, layer_name, exists)
 
-            polygon_fill = post_info.get('polygon_fill')
-            polygon_stroke = post_info.get('polygon_stroke')
-            polygon_opacity = post_info.get('polygon_opacity')
-            polygon_stroke_width = post_info.get('polygon_stroke_width')
-            polygon_xml = get_polygon_style_xml(polygon_fill, polygon_stroke, polygon_opacity,
-                                                polygon_stroke_width, layer_name, exists)
+            if poly_type == 'Line':
+                line_stroke = post_info.get('line_stroke')
+                stroke_dash_array = post_info.get('stroke_dash_array')
+                symbol_dash_array = post_info.get('symbol_dash_array')
+                stroke_dash_offset = post_info.get('stroke_dash_offset')
+                stroke_width = post_info.get('stroke_width')
+                line_symbology = post_info.get('line_symbology')
+                symbol_size = post_info.get('symbol_size')
+                line_xml = get_line_style_xml(line_stroke, stroke_dash_array, symbol_dash_array, stroke_dash_offset,
+                                              stroke_width, line_symbology, symbol_size, layer_name, exists)
 
     return JsonResponse({'success': 'Layer style set successfully.'})
 

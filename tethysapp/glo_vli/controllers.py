@@ -29,12 +29,21 @@ def home(request):
 
     endpoint_options = get_endpoint_options()
 
+    layer_list = [(layer, str(layer)+'|'+str(key)) for key, val in layer_options.items() for layer in val]
+
+    layer_select_input = SelectInput(display_text='Select Layer',
+                                     name='layer-select-input',
+                                     multiple=False,
+                                     original=True,
+                                     options=layer_list,)
+
     context = {
         'select_counties_input': select_counties_input,
         'geoserver_wms_url': geoserver_wms_url,
         'legend_options': legend_options,
         'layer_options': json.dumps(layer_options),
-        'endpoint_options': json.dumps(endpoint_options)
+        'endpoint_options': json.dumps(endpoint_options),
+        'layer_select_input': layer_select_input
     }
 
     return render(request, 'glo_vli/home.html', context)
@@ -429,13 +438,69 @@ def set_layer_style(request):
                                      attributes={'id': 'polygon-stroke-width'},
                                      )
 
+    select_poly_type = SelectInput(display_text='Select Polygon or Line Styling',
+                                   name='poly-selector',
+                                   multiple=False,
+                                   original=True,
+                                   options=[('Polygon', 'Polygon'), ('Line', 'Line')],)
+
+    stroke_dash_array = TextInput(display_text='Stroke Dash Array',
+                                  name='stroke-dash-array',
+                                  placeholder='e.g.: 4 2. Stroke Dash Array value.',
+                                  attributes={'id': 'stroke-dash-array'},
+                                  )
+
+    symbol_dash_array = TextInput(display_text='Symbol Dash Array',
+                                  name='symbol-dash-array',
+                                  placeholder='e.g.: 4 2. Symbol Dash Array value.',
+                                  attributes={'id': 'symbol-dash-array'},
+                                  )
+
+    stroke_dash_offset = TextInput(display_text='Stroke Dash Offset',
+                                   name='stroke-dash-offset',
+                                   placeholder='e.g.: 4. Stroke Dash Offset.',
+                                   attributes={'id': 'stroke-dash-offset'},
+                                   )
+
+    select_line_symbology = SelectInput(display_text='Select Line Symbology',
+                                        name='select-line-symbology',
+                                        attributes={'id': 'select-line-symbology'},
+                                        multiple=False,
+                                        options=[('none', 'none'),
+                                                 ('circle', 'circle'),
+                                                 ('square', 'square'),
+                                                 ('triangle', 'triangle'),
+                                                 ('arrow', 'arrow'),
+                                                 ('cross', 'cross'),
+                                                 ('star', 'star'),
+                                                 ('x', 'x')])
+
+    symbol_size = TextInput(display_text='Symbol Size',
+                            name='symbol-size',
+                            placeholder='e.g.: 4. Symbol Size.',
+                            attributes={'id': 'symbol-size'},
+                            )
+
+    stroke_width = TextInput(display_text='Stroke Width',
+                             name='stroke-width',
+                             placeholder='e.g.: 4. Stroke Width Pixels.',
+                             attributes={'id': 'stroke-width'},
+                             )
+
     context = {
         'layer_select_input': layer_select_input,
         'set_style_button': set_style_button,
         'select_point_symbology': select_point_symbology,
         'point_size_input': point_size_input,
         'polygon_fill_opacity': polygon_fill_opacity,
-        'polygon_stroke_width': polygon_stroke_width
+        'polygon_stroke_width': polygon_stroke_width,
+        'select_poly_type': select_poly_type,
+        'stroke_dash_array': stroke_dash_array,
+        'stroke_dash_offset': stroke_dash_offset,
+        'select_line_symbology': select_line_symbology,
+        'symbol_size': symbol_size,
+        'stroke_width': stroke_width,
+        'symbol_dash_array': symbol_dash_array
     }
 
     return render(request, 'glo_vli/set_layer_style.html', context)

@@ -53,6 +53,12 @@ var LIBRARY_OBJECT = (function() {
             var point_size = $("#point-size-input").val('');
             var polygon_opacity = $("#polygon-fill-opacity").val('');
             var polygon_stroke_width = $("#polygon-stroke-width").val('');
+            var stroke_dash_array = $("#stroke-dash-array").val('');
+            var symbol_dash_array = $("#symbol-dash-array").val('');
+            var stroke_dash_offset = $("#stroke-dash-offset").val('');
+            var stroke_width = $("#stroke-width").val('');
+            var symbol_size = $("#symbol-size").val('');
+
             addSuccessMessage('Layer Style Set Successfully!');
         }
     };
@@ -71,7 +77,14 @@ var LIBRARY_OBJECT = (function() {
         var point_symbology = $("#select-point-symbology option:selected").val();
         var polygon_opacity = $("#polygon-fill-opacity").val();
         var polygon_stroke_width = $("#polygon-stroke-width").val();
-
+        var poly_type = $("#poly-selector option:selected").val();
+        var line_stroke = $("#line-stroke").val();
+        var stroke_dash_array = $("#stroke-dash-array").val();
+        var symbol_dash_array = $("#symbol-dash-array").val();
+        var stroke_dash_offset = $("#stroke-dash-offset").val();
+        var stroke_width = $("#stroke-width").val();
+        var line_symbology = $("#select-line-symbology option:selected").val();
+        var symbol_size = $("#symbol-size").val();
 
         if (layer === "") {
             addErrorMessage("Layer name cannot be empty!");
@@ -84,10 +97,12 @@ var LIBRARY_OBJECT = (function() {
         var submit_button = $("#submit-set-layer");
         var submit_button_html = submit_button.html();
         submit_button.text('Setting Style...');
-        var data = {"layer": layer, "point_fill": point_fill,
+        var data = {"poly_type": poly_type, "layer": layer, "point_fill": point_fill,
             "polygon_fill": polygon_fill, "polygon_stroke": polygon_stroke,
             "point_size": point_size, "point_symbology": point_symbology,
-            "polygon_opacity": polygon_opacity, "polygon_stroke_width": polygon_stroke_width};
+            "polygon_opacity": polygon_opacity, "polygon_stroke_width": polygon_stroke_width,
+            "line_stroke": line_stroke, "stroke_dash_array": stroke_dash_array, "symbol_dash_array": symbol_dash_array,
+            "stroke_dash_offset": stroke_dash_offset, "stroke_width": stroke_width, "line_symbology": line_symbology, "symbol_size": symbol_size};
         var xhr = ajax_update_database("submit", data); //Submitting the data through the ajax function, see main.js for the helper function.
         xhr.done(function (return_data) { //Reset the form once the data is added successfully
             if ("success" in return_data) {
@@ -130,13 +145,26 @@ var LIBRARY_OBJECT = (function() {
             var layer_type = layer_info.split('|')[1];
             if(layer_type == 'points'){
                 $('.point_form').removeClass('hidden');
-                $('.polygon_form').addClass('hidden');
+
+                $(".poly_selector").addClass("hidden");
             }else{
+                $(".poly_selector").removeClass("hidden");
                 $('.point_form').addClass('hidden');
-                $('.polygon_form').removeClass('hidden');
+                $("#poly-selector").change(function(){
+                    var poly_type = $("#poly-selector option:selected").val();
+                    if(poly_type==='Polygon'){
+                        $('.polygon_form').removeClass('hidden');
+                        $('.line_form').addClass('hidden');
+                    }else{
+                        $('.line_form').removeClass('hidden');
+                        $('.polygon_form').addClass('hidden');
+                    }
+                }).change();
+                // $('.polygon_form').removeClass('hidden');
             }
         }).change();
     });
+
 
     return public_interface;
 

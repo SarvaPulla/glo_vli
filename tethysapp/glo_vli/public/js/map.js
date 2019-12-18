@@ -46,6 +46,7 @@ var LIBRARY_OBJECT = (function() {
      *                    PRIVATE FUNCTION DECLARATIONS
      *************************************************************************/
     var add_vli_layers,
+        get_db_file,
         get_popup,
         init_events,
         init_jquery_vars,
@@ -170,7 +171,7 @@ var LIBRARY_OBJECT = (function() {
             })
         });
 
-        layers = [base_map, base_map2, base_map3, vector_layer, shpLayer, counties_layer];
+        layers = [base_map2, base_map3, vector_layer, shpLayer, counties_layer];
 
         view = new ol.View({
             center: ol.proj.transform([-94.40, 30.20], 'EPSG:4326', 'EPSG:3857'),
@@ -209,17 +210,47 @@ var LIBRARY_OBJECT = (function() {
         download.innerHTML = '<span class="glyphicon glyphicon-download-alt"></span>';
 
         var handleDownloadLayers = function(e) {
-            var xhr = ajax_update_database("download-layers", {});
-
-            xhr.done(function(return_data){
-                var points_url = return_data['points_url'];
-                var polygons_url = return_data['polygons_url'];
-                window.open(points_url);
-                window.open(polygons_url);
-            });
+            // var xhr = ajax_update_database("download-layers", {});
+            //
+            // xhr.done(function(return_data){
+            //     var points_url = return_data['points_url'];
+            //     var polygons_url = return_data['polygons_url'];
+            //     var polygons_csv = '/apps/glo-vli/api/download-polygons-csv/';
+            //     var points_csv = '/apps/glo-vli/api/download-points-csv/';
+            //     window.open(points_csv);
+            //     window.open(polygons_csv);
+            //     window.open(points_url);
+            //     window.open(polygons_url);
+            // });
+            $("#download-modal").modal('show');
         };
 
         download.addEventListener('click', handleDownloadLayers, false);
+
+        var print = document.createElement('button');
+        print.innerHTML = '<span class="glyphicon glyphicon-print"></span>';
+
+        var printMap = function(e){
+            map.once('postcompose', function(event) {
+                var canvas = event.context.canvas;
+                if (navigator.msSaveBlob) {
+                    navigator.msSaveBlob(canvas.msToBlob(), 'map.png');
+                } else {
+                    canvas.toBlob(function(blob) {
+                        saveAs(blob, 'map.png');
+                    });
+                }
+            });
+            map.renderSync();
+        };
+        var print_element = document.createElement('div');
+        print_element.className = 'print-map ol-unselectable ol-control';
+        print_element.appendChild(print);
+        print.addEventListener('click', printMap, false);
+        var PrintMapControl = new ol.control.Control({
+            element: print_element
+        });
+        map.addControl(PrintMapControl);
 
         var div_element = document.createElement('div');
         div_element.className = 'download-layers ol-unselectable ol-control';
@@ -539,7 +570,7 @@ var LIBRARY_OBJECT = (function() {
             }
             var pixel = map.getEventPixel(evt.originalEvent);
             var hit = map.forEachLayerAtPixel(pixel, function(layer) {
-                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3] && layer !== layers[4] && layer !== layers[5]){
+                if (layer !== layers[0] && layer !== layers[1] && layer !== layers[2] && layer !== layers[3] && layer !== layers[4]){
                     current_layer = layer;
                     return true;
                 }
@@ -627,9 +658,8 @@ var LIBRARY_OBJECT = (function() {
                 });
                 map.addLayer(vector);
             }else{
-
                 var wms_url = lyrs.url;
-                var wms_layers = lyrs.meta_dict['LAYERS'];
+                var wms_layers = lyrs.meta['LAYERS'];
                 var wms_legend_url = lyrs.legend_url;
                 wms_source = new ol.source.TileWMS({
                     url: wms_url,
@@ -655,6 +685,31 @@ var LIBRARY_OBJECT = (function() {
         });
     };
 
+    get_db_file = function(){
+        var layer_type = $("#layer-types option:selected").val();
+        if(layer_type==='layer_csv'){
+            var csv_layer = $("#layer-select-input option:selected").val();
+            var csv_layer_type = csv_layer.split('|')[1];
+            var layer_name = csv_layer.split('|')[0];
+            var req_url = '/apps/glo-vli/api/download-layer-csv/?layer_type='+csv_layer_type+'&layer_name='+layer_name;
+            window.open(req_url);
+        }else{
+            var xhr = ajax_update_database("download-layers", {});
+
+            xhr.done(function(return_data){
+                var points_url = return_data['points_url'];
+                var polygons_url = return_data['polygons_url'];
+                if(layer_type==='point_shp'){
+                    window.open(points_url);
+                }else{
+                    window.open(polygons_url);
+
+                }
+            });
+        }
+    };
+
+    $("#btn-download-file").click(get_db_file);
 
     init_all = function(){
         init_jquery_vars();
@@ -695,7 +750,14 @@ var LIBRARY_OBJECT = (function() {
         //     view.setCenter(geolocation.getPosition());
         //     view.setResolution(12);
         // });
-
+        $("#layer-types").change(function(){
+            var layer_type = $("#layer-types option:selected").val();
+            if(layer_type==='layer_csv'){
+                $('.layer_csv_select').removeClass('hidden');
+            }else{
+                $('.layer_csv_select').addClass('hidden');
+            }
+        });
 
         $("#select-county").change(function() {
             var counties = ($("#select-county").val());

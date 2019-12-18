@@ -205,6 +205,21 @@ class GloVli(TethysAppBase):
                 url='glo-vli/download-interaction',
                 controller='glo_vli.controllers_ajax.download_interaction'
             ),
+            UrlMap(
+                name='download-points-csv',
+                url='glo-vli/api/download-points-csv',
+                controller='glo_vli.api.download_points_csv'
+            ),
+            UrlMap(
+                name='download-polygons-csv',
+                url='glo-vli/api/download-polygons-csv',
+                controller='glo_vli.api.download_polygons_csv'
+            ),
+            UrlMap(
+                name='download-layer-csv',
+                url='glo-vli/api/download-layer-csv',
+                controller='glo_vli.api.download_layer_csv'
+            ),
         )
 
         return url_maps

@@ -3,7 +3,7 @@
 {% load staticfiles %}
 {% block header_buttons %}
 <div class="header-button glyphicon-button" data-toggle="tooltip" data-placement="bottom" title="Help">
-  <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
+    <a data-toggle="modal" data-target="#help-modal"><span class="glyphicon glyphicon-question-sign"></span></a>
 </div>
 {% endblock %}
 
@@ -44,174 +44,190 @@
 
 {% block app_content %}
 <style>
-  .download-layers{
-    top: 65px;
-    left: .5em;
-  }
-  .ol-touch .download-layers{
-    top: 80px;
-  }
-  .interaction-control{
-    top: 90px;
-    left: .5em;
-  }
-  .ol-touch .interaction-control{
-    top: 105px;
-  }
-  #map {
-    height: 100%;
-    width: 100%;
-    position: relative;
-  }
-  .info {
-    font: 14px/16px Arial, Helvetica, sans-serif;
-    background: black;
-    background: rgba(0, 0, 0, 0.8);
-    box-shadow: 0 0 15px rgba(0,0,0,0.2);
-    border-radius: 5px;
-    width:120px;
-    height:270px;
-  }
-  td {
-    font-size:80%;
-    padding-left: 1em;
-    padding-right: 1em;
-  }
+    .download-layers{
+        top: 65px;
+        left: .5em;
+    }
+    .ol-touch .download-layers{
+        top: 80px;
+    }
+    .interaction-control{
+        top: 93px;
+        left: .5em;
+    }
+    .ol-touch .interaction-control{
+        top: 105px;
+    }
 
-  th {
-    font-size:80%;
-    padding-left: 1em;
-    padding-right: 1em;
-  }
-  .popover{
-    min-width:250px;
-    max-width:600px;
-  }
-  ul.layerstack {
-    list-style: none;
-  }
+    .print-map{
+        top: 120px;
+        left: .5em;
+    }
 
-  ul.layerstack li {
-    border-bottom: 1px solid #ccc;
-    padding: 3px;
-  }
-  ul.layerstack li:hover {
-    background-color: #eee;
-  }
-  ul.layerstack li.selected {
-    background-color: #ddd;
-  }
-  .tree {
-    min-height:20px;
-    /*max-height: 150px;*/
-    overflow: auto;
-    padding: 3px;
-    margin-bottom:5px;
-    -webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
-    -moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
-    box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05)
-  }
-  .tree li {
-    list-style-type:none;
-    margin:0;
-    padding:10px 5px 10px 5px;
-    position:relative;
-    /*                -moz-border-radius:5px;
-                    -webkit-border-radius:5px;
-                    border:1px solid #999;
-                    border-radius:5px;*/
-  }
-  .tree li::before, .tree li::after {
-    content:'';
-    left:-20px;
-    position:absolute;
-    right:auto
-  }
-  .tree li::before {
-    border-left:1px solid #999;
-    bottom:50px;
-    height:100%;
-    top:0;
-    width:1px
-  }
-  .tree li::after {
-    border-top:1px solid #999;
-    height:20px;
-    top:25px;
-    width:25px
-  }
-  .tree li span {
-    display:inline-block;
-    padding:3px 8px;
-    text-decoration:none
-  }
-  .tree li.parent_li>span {
-    cursor:pointer
-  }
-  .tree>ul>li::before, .tree>ul>li::after {
-    border:0
-  }
-  .tree li:last-child::before {
-    height:30px
-  }
-  .tree li.parent_li>span:hover, .tree li.parent_li>span:hover+ul li span {
-    background:#eee;
-    border:1px solid #94a0b4;
-    color:#000;
-    -moz-border-radius:5px;
-    -webkit-border-radius:5px;
-    border-radius:5px;
-  }
-  .map-view-legend {
-    bottom: 25px;
-    left: 3px;
-    width: 250px;
-    max-height: 90%;
-    overflow-y: auto;
-    margin: 5px;
-    color:white;
-    background: white;
-    border: 1px #ddd solid;
-    z-index: 999;
-  }
-  .map-view-legend:hover{background-color:rgba(255, 255, 255, 0.7);!important;color: #fff9fb;}
-  .ol-scale-line{
-    background: #286090;
-  }
+    .ol-touch .print-map{
+        top: 135px;
+    }
+
+    #map {
+        height: 100%;
+        width: 100%;
+        position: relative;
+    }
+    .info {
+        font: 14px/16px Arial, Helvetica, sans-serif;
+        background: black;
+        background: rgba(0, 0, 0, 0.8);
+        box-shadow: 0 0 15px rgba(0,0,0,0.2);
+        border-radius: 5px;
+        width:120px;
+        height:270px;
+    }
+    td {
+        font-size:80%;
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+
+    th {
+        font-size:80%;
+        padding-left: 1em;
+        padding-right: 1em;
+    }
+    .popover{
+        min-width:250px;
+        max-width:600px;
+    }
+    ul.layerstack {
+        list-style: none;
+    }
+
+    ul.layerstack li {
+        border-bottom: 1px solid #ccc;
+        padding: 3px;
+    }
+    ul.layerstack li:hover {
+        background-color: #eee;
+    }
+    ul.layerstack li.selected {
+        background-color: #ddd;
+    }
+    .tree {
+        min-height:20px;
+        /*max-height: 150px;*/
+        overflow: auto;
+        padding: 3px;
+        margin-bottom:5px;
+        -webkit-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+        -moz-box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05);
+        box-shadow:inset 0 1px 1px rgba(0, 0, 0, 0.05)
+    }
+    .tree li {
+        list-style-type:none;
+        margin:0;
+        padding:10px 5px 10px 5px;
+        position:relative;
+        /*                -moz-border-radius:5px;
+                        -webkit-border-radius:5px;
+                        border:1px solid #999;
+                        border-radius:5px;*/
+    }
+    .tree li::before, .tree li::after {
+        content:'';
+        left:-20px;
+        position:absolute;
+        right:auto
+    }
+    .tree li::before {
+        border-left:1px solid #999;
+        bottom:50px;
+        height:100%;
+        top:0;
+        width:1px
+    }
+    .tree li::after {
+        border-top:1px solid #999;
+        height:20px;
+        top:25px;
+        width:25px
+    }
+    .tree li span {
+        display:inline-block;
+        padding:3px 8px;
+        text-decoration:none
+    }
+    .tree li.parent_li>span {
+        cursor:pointer
+    }
+    .tree>ul>li::before, .tree>ul>li::after {
+        border:0
+    }
+    .tree li:last-child::before {
+        height:30px
+    }
+    .tree li.parent_li>span:hover, .tree li.parent_li>span:hover+ul li span {
+        background:#eee;
+        border:1px solid #94a0b4;
+        color:#000;
+        -moz-border-radius:5px;
+        -webkit-border-radius:5px;
+        border-radius:5px;
+    }
+    .map-view-legend {
+        bottom: 25px;
+        left: 3px;
+        width: 250px;
+        max-height: 90%;
+        overflow-y: auto;
+        margin: 5px;
+        color:white;
+        background: white;
+        border: 1px #ddd solid;
+        z-index: 999;
+    }
+    .map-view-legend:hover{background-color:rgba(255, 255, 255, 0.7);!important;color: #fff9fb;}
+    .ol-scale-line{
+        background: #286090;
+    }
 
 </style>
 
 <div id="map" class="map"></div>
 <div id="popup" class="popup"></div>
 <div id="map-view-legend" class="map-view-legend ol-unselectable ol-control">
-  <b style="color: black;">Legend</b>
-  {% for opt in legend_options reversed%}
-  <img src="{{opt.0}}" class="{{opt.1}} hidden" style="display:block;" >
-  {% endfor %}
+    <b style="color: black;">Legend</b>
+    {% for opt in legend_options reversed%}
+    <img src="{{opt.0}}" class="{{opt.1}} hidden" style="display:block;" >
+    {% endfor %}
 </div>
 {% endblock %}
 
 {# Use the after_app_content block for modals #}
 {% block after_app_content %}
-<!-- Example Modal -->
+<!-- Info Modal -->
 <div class="modal fade" id="help-modal" tabindex="-1" role="dialog" aria-labelledby="help-modal-label">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h5 class="modal-title" id="help-modal-label">Example Modal</h5>
-      </div>
-      <div class="modal-body">
-        <p>You can add custom buttons to the app header using the <code>header_buttons</code> block. Use anchor/link tags for the button and wrap it in a div with the class <code>header-button</code>. For buttons with the gliphyicons, add the <code>glyphicon-button</code> class as well.</p>
-        <p>Ever have trouble using a modal in a Tethys app? Use the <code>after_app_content</code> block for modal content to allow them to function properly. See: <a href="https://getbootstrap.com/javascript/#modals">Bootstrap Modals</a></p>
-        <p>Add tooltips to any element by adding the <code>data-toggle</code>, <code>data-placement</code>, and <code>title</code> attributes to the button. See: <a href="https://getbootstrap.com/javascript/#tooltips">Bootstrap Tooltips</a></p>
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
-        <button type="button" class="btn btn-primary" data-dismiss="modal">OK</button>
-      </div>
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h5 class="modal-title" id="help-modal-label">Help</h5>
+            </div>
+            <div class="modal-body">
+                <h6>INFO</h6>
+                <p><b>Purpose:</b> See where people would be in most danger in the event of a flood.  Also see infrastructure critical to human life during a flood.</p>
+                <p><b>Photo credit:</b>  MDay Photography/shutterstock.com</p>
+                <h6>DISCLAIMER</h6>
+                <p>This viewing app is for general information purposes.
+                    The user must verify all information for accuracy and completeness before making legal, surveying, engineering and other decisions.
+                    The General Land Office (GLO) make no express or implied warranty of this application and associated data as to the merchantability or fitness for a particular purpose.
+                    Neither the US and/or Texas Government nor its contractors shall be liable for special, consequential or incidental damages attributed to this application and associated data.
+                    Please note that your Use of this Site constitutes your acceptance of the aforementioned terms.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-success" data-dismiss="modal">Agree</button>
+            </div>
+        </div>
     </div>
-  </div>
 </div>
 <form id="modalUpload" class="modal fade" action="upload-shp/" method="POST" role="dialog">
     {% csrf_token %}
@@ -238,24 +254,50 @@
         <!--End modal content-->
     </div>
 </form>
-<div class="modal fade" id="interaction-modal" tabindex="-1" role="dialog" aria-labelledby="interaction-modal-label">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
-        <h5 class="modal-title" id="interaction-modal-label">Map Interaction Modal</h5>
-      </div>
-      <div class="modal-body">
-        <label>Map Interaction</label>
-        <a id="point-download" download="point_features.json" hidden>Point Downloads</a>
-        <select id="types" class="selectpicker" data-width="fit">
-          <option value="None">None</option>
-          <option value="Polygon">Polygon</option>
-<!--          <option value="Upload">Upload Shapefile</option>-->
-        </select>
-      </div>
+<div class="modal fade" id="download-modal" tabindex="-1" role="dialog" aria-labelledby="download-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h5 class="modal-title" id="download-modal-label">Download Modal</h5>
+            </div>
+            <div class="modal-body">
+                <label>Download Type</label>
+                <select id="layer-types" class="selectpicker" data-width="fit">
+                    <option value="point_shp">Point Shapefile</option>
+                    <option value="polygon_shp">Polygon Shapefile</option>
+                    <option value="layer_csv">Layer by csv</option>
+                </select>
+                <div class="layer_csv_select hidden">
+                    {% gizmo layer_select_input%}
+                </div>
+            </div>
+            <div class="modal-footer">
+                <div class="button-group">
+                    <button type="button" id="btn-download-file" class="btn btn-primary">Download</button>
+                </div>
+            </div>
+        </div>
     </div>
-  </div>
+</div>
+<div class="modal fade" id="interaction-modal" tabindex="-1" role="dialog" aria-labelledby="interaction-modal-label">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h5 class="modal-title" id="interaction-modal-label">Map Interaction Modal</h5>
+            </div>
+            <div class="modal-body">
+                <label>Map Interaction</label>
+                <a id="point-download" download="point_features.json" hidden>Point Downloads</a>
+                <select id="types" class="selectpicker" data-width="fit">
+                    <option value="None">None</option>
+                    <option value="Polygon">Polygon</option>
+                    <!--          <option value="Upload">Upload Shapefile</option>-->
+                </select>
+            </div>
+        </div>
+    </div>
 </div>
 {% endblock %}
 

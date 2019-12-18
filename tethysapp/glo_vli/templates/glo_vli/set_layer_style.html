@@ -8,7 +8,9 @@
 <h3>Set Layer Style</h3>
 <div id="message" class="alert alert-danger hidden" role="alert"></div>
 {% gizmo  layer_select_input %}
-
+<div class="poly_selector">
+    {% gizmo select_poly_type %}
+</div>
 <div class="point_form">
     {% gizmo select_point_symbology %}
     {% gizmo point_size_input %}
@@ -16,6 +18,19 @@
         Select Fill Color
     </label>
     <input class="jscolor" value="ab2567" name="point-fill" id="point-fill" style="width: 100%">
+</div>
+
+<div class="line_form">
+    <label>
+        Select Stroke Color
+    </label>
+    <input class="jscolor" value="ab2567" name="line-stroke" id="line-stroke" style="width: 100%">
+    {% gizmo stroke_dash_array %}
+    {% gizmo stroke_dash_offset %}
+    {% gizmo stroke_width %}
+    {% gizmo select_line_symbology %}
+    {% gizmo symbol_dash_array %}
+    {% gizmo symbol_size %}
 </div>
 
 <div class="polygon_form">

@@ -13,6 +13,7 @@ from shapely.geometry import Point, Polygon, MultiPolygon
 import tempfile
 import shutil
 from django.http import JsonResponse
+from pandas.io.json import json_normalize
 import uuid
 from urllib.parse import urljoin
 from .config import geoserver_wfs_url, geoserver_wms_url, \
@@ -327,61 +328,7 @@ def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, sty
     sld_string += '\t</NamedLayer>\n'
     sld_string += '</StyledLayerDescriptor>\n'
 
-    sld_name = style_name + '.sld'
-
-    app_workspace = app.get_app_workspace()
-    temp_id = uuid.uuid4()
-    temp_dir = os.path.join(app_workspace.path, str(temp_id))
-    os.makedirs(temp_dir)
-    f_path = os.path.join(temp_dir, sld_name)
-    fh = open(f_path, 'w')
-    fh.write(sld_string)
-    fh.close()
-
-    if style_exists:
-        headers = {'content-type': 'application/vnd.ogc.sld+xml'}
-        resource = 'styles/{}'.format(sld_name)
-
-        request_url = urljoin(geoserver_rest_url, resource)
-        with open(f_path, 'rb') as f:
-            r = requests.put(
-                request_url,
-                data=f,
-                headers=headers,
-                auth=geoserver_credentials
-            )
-
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
-
-    else:
-        resource = 'styles'
-        payload = \
-            '<style><name>{0}</name><filename>{1}</filename></style>'.format(style_name, sld_name)
-        headers = {'content-type': 'text/xml'}
-
-        request_url = urljoin(geoserver_rest_url, resource)
-
-        r = requests.post(
-            request_url,
-            data=payload,
-            headers=headers,
-            auth=geoserver_credentials
-        )
-
-        resource2 = 'styles/{}'.format(sld_name)
-        request_url2 = urljoin(geoserver_rest_url, resource2)
-        headers2 = {'content-type': 'application/vnd.ogc.sld+xml'}
-        with open(f_path, 'rb') as f:
-            r = requests.put(
-                request_url2,
-                data=f,
-                headers=headers2,
-                auth=geoserver_credentials
-            )
-
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
+    upload_xml_geoserver(sld_string, style_exists, style_name)
 
     return sld_string
 
@@ -420,61 +367,71 @@ def get_polygon_style_xml(polygon_fill, polygon_stroke, polygon_opacity, polygon
     sld_string += '\t</NamedLayer>\n'
     sld_string += '</StyledLayerDescriptor>\n'
 
-    sld_name = style_name + '.sld'
+    upload_xml_geoserver(sld_string, style_exists, style_name)
 
-    app_workspace = app.get_app_workspace()
-    temp_id = uuid.uuid4()
-    temp_dir = os.path.join(app_workspace.path, str(temp_id))
-    os.makedirs(temp_dir)
-    f_path = os.path.join(temp_dir, sld_name)
-    fh = open(f_path, 'w')
-    fh.write(sld_string)
-    fh.close()
+    return sld_string
 
-    if style_exists:
-        headers = {'content-type': 'application/vnd.ogc.sld+xml'}
-        resource = 'styles/{}'.format(sld_name)
 
-        request_url = urljoin(geoserver_rest_url, resource)
-        with open(f_path, 'rb') as f:
-            r = requests.put(
-                request_url,
-                data=f,
-                headers=headers,
-                auth=geoserver_credentials
-            )
+def get_line_style_xml(line_stroke, stroke_dash_array, symbol_dash_array, stroke_dash_offset,
+                       stroke_width, line_symbology, symbol_size, layer_name, style_exists):
+    print()
+    style_name = layer_name.replace(r' ', '_').lower()
 
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
+    if symbol_size is not None:
+        symbol_size = str(4)
 
-    else:
-        resource = 'styles'
-        payload = \
-            '<style><name>{0}</name><filename>{1}</filename></style>'.format(style_name, sld_name)
-        headers = {'content-type': 'text/xml'}
+    sld_string = '<?xml version="1.0" encoding="UTF-8"?>\n'
+    sld_string += '<sld:StyledLayerDescriptor xmlns="http://www.opengis.net/sld" \n'
+    sld_string += 'xmlns:sld="http://www.opengis.net/sld" xmlns:ogc="http://www.opengis.net/ogc" \n'
+    sld_string += 'xmlns:gml="http://www.opengis.net/gml" version="1.0.0"> \n'
+    sld_string += '\t<sld:NamedLayer>\n'
+    sld_string += '\t\t<sld:Name>Default Styler</sld:Name>\n'
+    sld_string += '\t\t\t<sld:UserStyle>\n'
+    sld_string += '\t\t\t<sld:Name>{}</sld:Name>\n'.format(layer_name)
+    sld_string += '\t\t\t<sld:Title>{}</sld:Title>\n'.format(layer_name)
+    sld_string += '\t\t\t<sld:FeatureTypeStyle>\n'
+    sld_string += '\t\t\t\t\t<sld:Name>{}</sld:Name>\n'.format(layer_name)
+    sld_string += '\t\t\t\t<sld:Rule>\n'
+    sld_string += '\t\t\t\t\t<sld:Title>{}</sld:Title>\n'.format(layer_name)
 
-        request_url = urljoin(geoserver_rest_url, resource)
+    if line_symbology != 'none':
+        sld_string += '\t\t\t\t\t\t<sld:LineSymbolizer>\n'
+        sld_string += '\t\t\t\t\t\t\t<sld:Stroke>\n'
+        sld_string += '\t\t\t\t\t\t<sld:GraphicStroke>\n'
+        sld_string += '\t\t\t\t\t\t\t<sld:Graphic>\n'
+        sld_string += '\t\t\t\t\t\t\t\t<sld:Mark>\n'
+        sld_string += '\t\t\t\t\t\t\t\t\t<sld:WellKnownName>{}</sld:WellKnownName>\n'.format(line_symbology)
+        sld_string += '\t\t\t\t\t\t\t\t\t\t<sld:Fill>\n'
+        sld_string += '\t\t\t\t\t\t\t\t\t\t\t<sld:CssParameter name="fill">#{}</sld:CssParameter>\n'.format(line_stroke)
+        sld_string += '\t\t\t\t\t\t\t\t\t\t</sld:Fill>\n'
+        sld_string += '\t\t\t\t\t\t\t\t</sld:Mark>\n'
+        sld_string += '\t\t\t\t\t\t\t\t\t<sld:Size>\n'
+        sld_string += '\t\t\t\t\t\t\t\t\t\t<ogc:Literal>{}</ogc:Literal>\n'.format(symbol_size)
+        sld_string += '\t\t\t\t\t\t\t\t\t</sld:Size>\n'
+        sld_string += '\t\t\t\t\t\t\t</sld:Graphic>\n'
+        sld_string += '\t\t\t\t\t\t</sld:GraphicStroke>\n'
+        sld_string += '\t\t\t\t\t\t<sld:CssParameter name="stroke-dasharray">{}</sld:CssParameter>\n'.format(symbol_dash_array)
+        sld_string += '\t\t\t\t\t\t\t</sld:Stroke>\n'
+        sld_string += '\t\t\t\t\t\t</sld:LineSymbolizer>\n'
+        sld_string += '\t\t\t\t<sld:LineSymbolizer>\n'
 
-        r = requests.post(
-            request_url,
-            data=payload,
-            headers=headers,
-            auth=geoserver_credentials
-        )
+    sld_string += '\t\t\t\t\t<sld:Stroke>\n'
+    sld_string += '\t\t\t\t\t\t<sld:CssParameter name="stroke">#{}</sld:CssParameter>\n'.format(line_stroke)
 
-        resource2 = 'styles/{}'.format(sld_name)
-        request_url2 = urljoin(geoserver_rest_url, resource2)
-        headers2 = {'content-type': 'application/vnd.ogc.sld+xml'}
-        with open(f_path, 'rb') as f:
-            r = requests.put(
-                request_url2,
-                data=f,
-                headers=headers2,
-                auth=geoserver_credentials
-            )
+    if stroke_dash_array != '':
+        sld_string += '\t\t\t\t\t\t<sld:CssParameter name="stroke-dasharray">{}</sld:CssParameter>\n'.format(stroke_dash_array)
+    if stroke_dash_offset != '':
+        sld_string += '\t\t\t\t\t\t<sld:CssParameter name="stroke-dashoffset">{}</sld:CssParameter>\n'.format(stroke_dash_offset)
+    sld_string += '\t\t\t\t\t\t<sld:CssParameter name="stroke-width">{}</sld:CssParameter>\n'.format(stroke_width)
+    sld_string += '\t\t\t\t\t\t</sld:Stroke>\n'
+    sld_string += '\t\t\t\t</sld:LineSymbolizer>\n'
+    sld_string += '\t\t\t\t</sld:Rule>\n'
+    sld_string += '\t\t\t</sld:FeatureTypeStyle>\n'
+    sld_string += '\t\t</sld:UserStyle>\n'
+    sld_string += '\t</sld:NamedLayer>\n'
+    sld_string += '</sld:StyledLayerDescriptor>\n'
 
-        if os.path.exists(temp_dir):
-            shutil.rmtree(temp_dir)
+    upload_xml_geoserver(sld_string, style_exists, style_name)
 
     return sld_string
 
@@ -561,4 +518,112 @@ def get_polygons_geom(geom):
 
     session.close()
     return polygons_json
+
+
+def get_polygons_csv():
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    query = session.query(Polygons).statement
+
+    polygons_gdf = gpd.read_postgis(sql=query,
+                                    con=session.bind,
+                                    geom_col='geometry')
+    session.close()
+
+    return polygons_gdf
+
+
+def get_points_csv():
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+    query = session.query(Points).statement
+
+    points_gdf = gpd.read_postgis(sql=query,
+                                    con=session.bind,
+                                    geom_col='geometry')
+    session.close()
+
+    return points_gdf
+
+
+def get_layer_csv(layer_name, layer_type):
+
+    Session = app.get_persistent_store_database('layers', as_sessionmaker=True)
+    session = Session()
+
+    if layer_type == 'points':
+        query = session.query(Points).filter(Points.layer_name == layer_name).statement
+    else:
+        query = session.query(Polygons).filter(Polygons.layer_name == layer_name).statement
+
+    layer_gdf = gpd.read_postgis(sql=query,
+                                 con=session.bind,
+                                 geom_col='geometry')
+    layer_df = json_normalize(layer_gdf['attr_dict'])
+    final_df = pd.concat([layer_gdf, layer_df], axis=1).drop(['attr_dict', 'id'], axis=1)
+    session.close()
+
+    return final_df
+
+
+def upload_xml_geoserver(sld_string, style_exists, style_name):
+    sld_name = style_name + '.sld'
+
+    app_workspace = app.get_app_workspace()
+    temp_id = uuid.uuid4()
+    temp_dir = os.path.join(app_workspace.path, str(temp_id))
+    os.makedirs(temp_dir)
+    f_path = os.path.join(temp_dir, sld_name)
+    fh = open(f_path, 'w')
+    fh.write(sld_string)
+    fh.close()
+
+    if style_exists:
+        headers = {'content-type': 'application/vnd.ogc.sld+xml'}
+        resource = 'styles/{}'.format(sld_name)
+
+        request_url = urljoin(geoserver_rest_url, resource)
+        with open(f_path, 'rb') as f:
+            r = requests.put(
+                request_url,
+                data=f,
+                headers=headers,
+                auth=geoserver_credentials
+            )
+
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
+    else:
+        resource = 'styles'
+        payload = \
+            '<style><name>{0}</name><filename>{1}</filename></style>'.format(style_name, sld_name)
+        headers = {'content-type': 'text/xml'}
+
+        request_url = urljoin(geoserver_rest_url, resource)
+
+        r = requests.post(
+            request_url,
+            data=payload,
+            headers=headers,
+            auth=geoserver_credentials
+        )
+
+        resource2 = 'styles/{}'.format(sld_name)
+        request_url2 = urljoin(geoserver_rest_url, resource2)
+        headers2 = {'content-type': 'application/vnd.ogc.sld+xml'}
+        with open(f_path, 'rb') as f:
+            r = requests.put(
+                request_url2,
+                data=f,
+                headers=headers2,
+                auth=geoserver_credentials
+            )
+
+        if os.path.exists(temp_dir):
+            shutil.rmtree(temp_dir)
+
+    return sld_string
+
+
 
