@@ -414,6 +414,12 @@ def set_layer_style(request):
                                  attributes={'id': 'point-size-input'},
                                  )
 
+    point_stroke_input = TextInput(display_text='Stroke Size',
+                                   name='point-stroke-input',
+                                   placeholder='e.g.: 2',
+                                   attributes={'id': 'point-stroke-input'},
+                                   )
+
     select_point_symbology = SelectInput(display_text='Select Point Symbology',
                                          name='select-point-symbology',
                                          attributes={'id': 'select-point-symbology'},
@@ -500,7 +506,8 @@ def set_layer_style(request):
         'select_line_symbology': select_line_symbology,
         'symbol_size': symbol_size,
         'stroke_width': stroke_width,
-        'symbol_dash_array': symbol_dash_array
+        'symbol_dash_array': symbol_dash_array,
+        'point_stroke_input': point_stroke_input
     }
 
     return render(request, 'glo_vli/set_layer_style.html', context)

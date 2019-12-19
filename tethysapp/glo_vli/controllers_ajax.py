@@ -621,8 +621,10 @@ def layer_style_set(request):
             point_size = post_info.get('point_size')
             point_symbology = post_info.get('point_symbology')
             point_fill = post_info.get('point_fill')
+            point_stroke_size = post_info.get('point_stroke_size')
+            point_stroke_fill = post_info.get('point_stroke_fill')
             point_xml = get_point_style_xml(point_size, point_symbology, point_fill,
-                                            layer_name, exists)
+                                            point_stroke_fill, point_stroke_size, layer_name, exists)
         if layer_type == 'polygons':
             poly_type = post_info.get('poly_type')
             if poly_type == 'Polygon':

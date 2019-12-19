@@ -58,6 +58,7 @@ var LIBRARY_OBJECT = (function() {
             var stroke_dash_offset = $("#stroke-dash-offset").val('');
             var stroke_width = $("#stroke-width").val('');
             var symbol_size = $("#symbol-size").val('');
+            var point_stroke = $("#point-stroke-input").val('');
 
             addSuccessMessage('Layer Style Set Successfully!');
         }
@@ -85,6 +86,8 @@ var LIBRARY_OBJECT = (function() {
         var stroke_width = $("#stroke-width").val();
         var line_symbology = $("#select-line-symbology option:selected").val();
         var symbol_size = $("#symbol-size").val();
+        var point_stroke_size = $("#point-stroke-input").val();
+        var point_stroke_fill = $("#stroke-fill").val();
 
         if (layer === "") {
             addErrorMessage("Layer name cannot be empty!");
@@ -100,6 +103,7 @@ var LIBRARY_OBJECT = (function() {
         var data = {"poly_type": poly_type, "layer": layer, "point_fill": point_fill,
             "polygon_fill": polygon_fill, "polygon_stroke": polygon_stroke,
             "point_size": point_size, "point_symbology": point_symbology,
+            "point_stroke_size": point_stroke_size, "point_stroke_fill": point_stroke_fill,
             "polygon_opacity": polygon_opacity, "polygon_stroke_width": polygon_stroke_width,
             "line_stroke": line_stroke, "stroke_dash_array": stroke_dash_array, "symbol_dash_array": symbol_dash_array,
             "stroke_dash_offset": stroke_dash_offset, "stroke_width": stroke_width, "line_symbology": line_symbology, "symbol_size": symbol_size};
@@ -147,6 +151,8 @@ var LIBRARY_OBJECT = (function() {
                 $('.point_form').removeClass('hidden');
 
                 $(".poly_selector").addClass("hidden");
+                $('.line_form').addClass('hidden');
+                $('.polygon_form').addClass('hidden');
             }else{
                 $(".poly_selector").removeClass("hidden");
                 $('.point_form').addClass('hidden');

@@ -294,10 +294,11 @@ def process_shapefile(shapefile, layer_name, attributes):
                 shutil.rmtree(temp_dir)
 
 
-def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, style_exists):
+def get_point_style_xml(point_size, point_symbology, point_fill, point_stroke_fill, point_stroke_size, layer_name, style_exists):
 
     style_name = layer_name.replace(r' ', '_').lower()
     point_size = str(point_size)
+    point_stroke_size = str(point_stroke_size)
 
     sld_string = '<?xml version="1.0" encoding="ISO-8859-1"?>\n'
     sld_string += '<StyledLayerDescriptor version="1.0.0"\n'
@@ -318,6 +319,10 @@ def get_point_style_xml(point_size, point_symbology, point_fill, layer_name, sty
     sld_string += '\t\t\t\t\t\t\t\t\t<Fill>\n'
     sld_string += '\t\t\t\t\t\t\t\t\t\t<CssParameter name="fill">#{}</CssParameter>\n'.format(point_fill)
     sld_string += '\t\t\t\t\t\t\t\t\t</Fill>\n'
+    sld_string += '\t\t\t\t\t\t\t\t\t<Stroke>\n'
+    sld_string += '\t\t\t\t\t\t\t\t\t\t<CssParameter name="stroke">#{}</CssParameter>\n'.format(point_stroke_fill)
+    sld_string += '\t\t\t\t\t\t\t\t\t\t<CssParameter name="stroke-width">{}</CssParameter>\n'.format(point_stroke_size)
+    sld_string += '\t\t\t\t\t\t\t\t\t</Stroke>\n'
     sld_string += '\t\t\t\t\t\t\t\t</Mark>\n'
     sld_string += '\t\t\t\t\t\t\t\t<Size>{}</Size>\n'.format(point_size)
     sld_string += '\t\t\t\t\t\t\t</Graphic>\n'
